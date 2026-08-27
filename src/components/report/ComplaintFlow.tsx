@@ -1,6 +1,8 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Select } from '../ui/Select';
 import { DatePicker } from '../ui/DatePicker';
+import { useAction } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 
 type Step = { title: string; caption: string };
 const steps: Step[] = [
@@ -120,11 +122,11 @@ export function ComplaintFlow() {
           {/* Mode picker */}
           <div className="card card-pad" style={{ padding: 'var(--sp-4)', display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
             <ModeChoice active={mode === 'text'} icon="note-pencil" title="Type your complaint" sub="Use the guided form" onClick={() => setMode('text')} />
-            <ModeChoice active={mode === 'voice'} icon="microphone" title="Speak your complaint" sub="English or Hindi voice input" onClick={() => setMode('voice')} />
+            <ModeChoice active={mode === 'voice'} icon="microphone" title="Speak your complaint" sub="Any supported Indian language" onClick={() => setMode('voice')} />
           </div>
 
           {mode === 'voice' ? (
-            <VoicePane />
+            <VoicePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
           ) : (
             <form className="card card-pad" style={{ marginTop: 'var(--sp-5)' }} onSubmit={next}>
               <div className="stepper">
@@ -219,6 +221,7 @@ export function ComplaintFlow() {
                     <ReviewRow label="Sub category" value={subcategories.find((c) => c.value === form.subcategory)?.label || '—'} />
                     <ReviewRow label="Incident date" value={form.incidentDate || '—'} />
                     <ReviewRow label="Contact" value={form.contact || '—'} />
+                    <ReviewRow label="Description" value={form.description || '—'} />
                     <ReviewRow label="Amount involved" value={form.amount ? `₹ ${form.amount}` : '—'} />
                     <ReviewRow label="Evidence files" value={files.length ? `${files.length} attached` : 'None'} />
                   </div>
@@ -297,38 +300,126 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function VoicePane() {
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: { results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
+async function toWav16k(blob: Blob) {
+  const source = new AudioContext();
+  const decoded = await source.decodeAudioData(await blob.arrayBuffer());
+  await source.close();
+  const frames = Math.ceil(decoded.duration * 16000);
+  const offline = new OfflineAudioContext(1, frames, 16000);
+  const buffer = offline.createBuffer(1, decoded.length, decoded.sampleRate);
+  buffer.copyToChannel(decoded.getChannelData(0), 0);
+  const audio = offline.createBufferSource();
+  audio.buffer = buffer;
+  audio.connect(offline.destination);
+  audio.start();
+  const rendered = await offline.startRendering();
+  const samples = rendered.getChannelData(0);
+  const wav = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(wav);
+  const write = (offset: number, text: string) => [...text].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+  write(0, 'RIFF'); view.setUint32(4, 36 + samples.length * 2, true); write(8, 'WAVE'); write(12, 'fmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, 16000, true);
+  view.setUint32(28, 32000, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); write(36, 'data'); view.setUint32(40, samples.length * 2, true);
+  samples.forEach((sample, index) => view.setInt16(44 + index * 2, Math.max(-1, Math.min(1, sample)) * 0x7fff, true));
+  return new Blob([wav], { type: 'audio/wav' });
+}
+
+function VoicePane({ value, onChange, onSubmit }: { value: string; onChange: (value: string) => void; onSubmit: () => void }) {
   const [rec, setRec] = useState(false);
   const [secs, setSecs] = useState(0);
+  const [lang, setLang] = useState('unknown');
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [error, setError] = useState('');
+  const transcribe = useAction(api.voice.transcribe);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<Blob[]>([]);
+  const recognition = useRef<SpeechRecognitionLike | null>(null);
+  const startedAt = useRef(0);
   const timer = useRef<number | null>(null);
-  const toggle = () => {
-    if (rec) {
-      setRec(false);
-      if (timer.current) window.clearInterval(timer.current);
-    } else {
-      setRec(true);
-      timer.current = window.setInterval(() => setSecs((s) => s + 1), 1000);
-    }
+  const start = async () => {
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { setError('Audio recording is not supported here. Please use a modern browser or type below.'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const instance = new MediaRecorder(stream);
+      chunks.current = [];
+      instance.ondataavailable = (event) => { if (event.data.size) chunks.current.push(event.data); };
+      instance.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setError('Transcribing with Sarvam…');
+        try {
+          const recording = new Blob(chunks.current, { type: instance.mimeType || 'audio/webm' });
+          const blob = await toWav16k(recording);
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          let binary = ''; bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+          const response = await transcribe({ audioBase64: btoa(binary), mimeType: blob.type, languageCode: lang });
+          onChange(response.transcript); setError('');
+        } catch (transcriptionError) { setError(transcriptionError instanceof Error ? transcriptionError.message : 'Transcription failed. Please try again or type below.'); }
+      };
+      recorder.current = instance; instance.start();
+      setError(''); setSecs(0); setRec(true); startedAt.current = Date.now();
+      timer.current = window.setInterval(() => setSecs(Math.floor((Date.now() - startedAt.current) / 1000)), 500);
+      return;
+    } catch { setError('Microphone permission was denied. Please allow microphone access or type below.'); return; }
   };
+  const stop = () => { recorder.current?.stop(); recognition.current?.stop(); setRec(false); if (timer.current) window.clearInterval(timer.current); };
+  useEffect(() => () => { recognition.current?.stop(); if (timer.current) window.clearInterval(timer.current); }, []);
   return (
     <div className="card card-pad voice-stage">
       <span className="eyebrow" style={{ display: 'inline-flex' }}>Voice-assisted reporting</span>
-      <div className={`voice-orb ${rec ? 'recording' : ''}`}>
-        <i className="ph ph-microphone" />
+      <div className="voice-language-wrap">
+        <button type="button" className="voice-language-trigger" onClick={() => setLanguageOpen(true)} disabled={rec}>
+          <i className="ph ph-globe" /> <span>{languageName(lang)}</span> <i className="ph ph-caret-down" />
+        </button>
+        {languageOpen && <LanguageModal value={lang} onChange={(next) => { setLang(next); setLanguageOpen(false); }} onClose={() => setLanguageOpen(false)} />}
       </div>
-      <h3>{rec ? `Listening… ${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}` : 'Tap to start speaking'}</h3>
-      <p className="muted" style={{ maxWidth: '42ch' }}>
-        Speak naturally in English or Hindi. Sarvam converts your voice to text for review before submission.
-      </p>
-      <button className={`btn ${rec ? 'btn-danger' : 'btn-primary'}`} onClick={toggle}>
+      {/* Language options are kept in the modal below. */}
+      {false && <label className="voice-language">
+        <span className="sr-only">Voice language</span>
+        <select className="input" value={lang} onChange={(event) => setLang(event.target.value)} disabled={rec} aria-label="Voice language">
+        <option value="unknown">Auto-detect any language</option>
+        {[['en-IN','English'],['hi-IN','हिन्दी'],['bn-IN','বাংলা'],['ta-IN','தமிழ்'],['te-IN','తెలుగు'],['kn-IN','ಕನ್ನಡ'],['ml-IN','മലയാളം'],['mr-IN','मराठी'],['gu-IN','ગુજરાતી'],['pa-IN','ਪੰਜਾਬੀ'],['od-IN','ଓଡ଼ିଆ'],['as-IN','অসমীয়া'],['ur-IN','اردو'],['ne-IN','नेपाली'],['kok-IN','कोंकणी'],['ks-IN','कश्मीरी'],['sd-IN','सिन্ধी'],['sa-IN','संस्कृत'],['sat-IN','संथाली'],['mni-IN','মণিপুরী'],['brx-IN','बोड़ो'],['mai-IN','मैथिली'],['doi-IN','डोगरी']].map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+        </select>
+        <i className="ph ph-caret-down" aria-hidden="true" />
+      </label>}
+      {rec && <h3>Listening… {String(Math.floor(secs / 60)).padStart(2, '0')}:{String(secs % 60).padStart(2, '0')}</h3>}
+      <button type="button" className={`btn ${rec ? 'btn-danger' : 'btn-primary'}`} onClick={rec ? stop : start}>
         <i className={`ph ${rec ? 'ph-stop' : 'ph-microphone'}`} /> {rec ? 'Stop recording' : 'Start recording'}
       </button>
       <div className="transcript" style={{ width: '100%', maxWidth: 560, textAlign: 'left' }}>
-        <span className="placeholder">Your transcribed complaint will appear here for review…</span>
+        <textarea className="textarea" value={value} onChange={(event) => onChange(event.target.value)} placeholder="Your transcribed complaint will appear here for review…" aria-label="Voice complaint transcript" />
       </div>
+      <button type="button" className="btn btn-primary voice-submit" onClick={onSubmit} disabled={!value.trim() || rec}>
+        Submit complaint <span className="btn-ico"><i className="ph ph-arrow-right" /></span>
+      </button>
+      {error && <p className="error-text" role="alert">{error}</p>}
       <small className="muted">
-        <i className="ph ph-lock-key" /> Processed securely on-device. You can edit before submitting.
+        <i className="ph ph-lock-key" /> Processed securely by Sarvam AI. You can edit before submitting.
       </small>
     </div>
   );
+}
+
+const voiceLanguages = [['unknown', 'Auto-detect any language'], ['en-IN', 'English'], ['hi-IN', 'हिन्दी'], ['bn-IN', 'বাংলা'], ['ta-IN', 'தமிழ்'], ['te-IN', 'తెలుగు'], ['kn-IN', 'ಕನ್ನಡ'], ['ml-IN', 'മലയാളം'], ['mr-IN', 'मराठी'], ['gu-IN', 'ગુજરાતી'], ['pa-IN', 'ਪੰਜਾਬੀ'], ['od-IN', 'ଓଡ଼ିଆ'], ['as-IN', 'অসমীয়া'], ['ur-IN', 'اردو'], ['ne-IN', 'नेपाली'], ['kok-IN', 'कोंकणी'], ['ks-IN', 'कश्मೀरी'], ['sd-IN', 'सиндھی'], ['sa-IN', 'संस्कृत'], ['sat-IN', 'संथाली'], ['mni-IN', 'মণিপুরী'], ['brx-IN', 'बोड़ो'], ['mai-IN', 'मैथिली'], ['doi-IN', 'डोगरी']];
+
+function languageName(code: string) { return voiceLanguages.find(([value]) => value === code)?.[1] ?? 'Auto-detect any language'; }
+
+function LanguageModal({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
+  const columns = [voiceLanguages.slice(0, 8), voiceLanguages.slice(8, 16), voiceLanguages.slice(16)];
+  return <div className="language-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="language-modal" role="dialog" aria-modal="true" aria-labelledby="language-title">
+      <header><div><i className="ph ph-globe" /><div><h3 id="language-title">Select language</h3><p>Choose your preferred complaint language</p></div></div><button type="button" className="language-close" onClick={onClose} aria-label="Close language selector"><i className="ph ph-x" /></button></header>
+      <div className="language-columns">{columns.map((column, index) => <div className="language-column" key={index}>{column.map(([code, label]) => <button type="button" key={code} className={`language-row ${value === code ? 'selected' : ''}`} onClick={() => onChange(code)}><span>{label}</span>{value === code && <i className="ph ph-check" />}</button>)}</div>)}</div>
+    </section>
+  </div>;
 }

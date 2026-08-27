@@ -5,7 +5,6 @@ const links: { route: RouteKey; label: string }[] = [
   { route: 'report', label: 'Report' },
   { route: 'detect', label: 'Detect' },
   { route: 'track', label: 'Track' },
-  { route: 'learn', label: 'Learn' },
   { route: 'awareness', label: 'Awareness' },
   { route: 'contact', label: 'Contact' },
 ];

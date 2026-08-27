@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { PageHeader } from '../ui/PageHeader';
 import { Reveal } from '../ui/Reveal';
 import type { RouteKey } from '../../types';
@@ -10,6 +11,9 @@ const journey = [
 ] as const;
 
 export function TrackPage({ go }: { go: (r: RouteKey) => void }) {
+  const [reference, setReference] = useState('CCIN/2024/001234');
+  const [trackedReference, setTrackedReference] = useState('');
+  const track = () => { if (reference.trim()) setTrackedReference(reference.trim().toUpperCase()); };
   return (
     <>
       <PageHeader
@@ -25,17 +29,19 @@ export function TrackPage({ go }: { go: (r: RouteKey) => void }) {
       <section className="section-tight">
         <div className="container" style={{ maxWidth: 1000 }}>
           <div className="card card-pad" style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap', marginBottom: 'var(--sp-6)' }}>
-            <input className="input" style={{ flex: 1, minWidth: 240 }} placeholder="Complaint ID, e.g. CCIN/2024/001234" defaultValue="CCIN/2024/001234" />
-            <button className="btn btn-primary">
+            <input className="input" style={{ flex: 1, minWidth: 240 }} placeholder="Complaint ID, e.g. CCIN/2024/001234" value={reference} onChange={(event) => setReference(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') track(); }} />
+            <button className="btn btn-primary" onClick={track} disabled={!reference.trim()}>
               Track complaint <span className="btn-ico"><i className="ph ph-arrow-right" /></span>
             </button>
           </div>
 
-          <div className="track-grid">
+          {!trackedReference && <div className="track-empty"><i className="ph ph-magnifying-glass" /><h3>Enter your complaint number to view status</h3><p className="muted">Your case timeline and the next steps will appear here.</p></div>}
+
+          {trackedReference && <div className="track-grid track-result">
             <Reveal className="card card-pad complaint-card">
               <div className="case-row">
                 <div>
-                  <h3>CCIN/2024/001234</h3>
+                  <h3>{trackedReference}</h3>
                   <p className="muted">Financial Fraud · Reported 24 May 2024</p>
                 </div>
                 <span className="badge badge-warning">
@@ -43,7 +49,7 @@ export function TrackPage({ go }: { go: (r: RouteKey) => void }) {
                 </span>
               </div>
 
-              <div className="progress" aria-hidden="true">
+              <div className="progress" aria-label="60 percent complete">
                 <span style={{ width: '60%' }} />
               </div>
               <small className="muted">60% complete · last update 2 days ago</small>
@@ -78,7 +84,7 @@ export function TrackPage({ go }: { go: (r: RouteKey) => void }) {
                 <i className="ph ph-lifebuoy" /> Support &amp; guides
               </a>
             </aside>
-          </div>
+          </div>}
         </div>
       </section>
     </>

@@ -8,9 +8,11 @@
  * @module
  */
 
+import type * as detection from "../detection.js";
 import type * as mutations from "../mutations.js";
 import type * as queries from "../queries.js";
 import type * as seed from "../seed.js";
+import type * as voice from "../voice.js";
 
 import type {
   ApiFromModules,
@@ -19,9 +21,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  detection: typeof detection;
   mutations: typeof mutations;
   queries: typeof queries;
   seed: typeof seed;
+  voice: typeof voice;
 }>;
 
 /**

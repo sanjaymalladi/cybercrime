@@ -109,9 +109,11 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
     };
     window.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
+    document.body.classList.add('lightbox-open');
     document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
+      document.body.classList.remove('lightbox-open');
       document.body.style.overflow = prev;
     };
   }, [onClose, onNav]);
@@ -162,7 +164,6 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
               </a>
             </span>
           )}
-          <p className="ig-lightbox__cap">{item.title}</p>
           <span className="ig-lightbox__count">
             {data.idx + 1} / {data.list.length}
           </span>
@@ -383,13 +384,13 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
                   <>
                     <h4 className="reel-subhead">Reels</h4>
                     <div className={`reel-feed reel-feed--${desktop ? 'row' : 'col'}`} id={`reelfeed-${i}`}>
-                      {p.reels.map((m, idx) => (
+                      {(p.handle.toLowerCase().includes('vigil') ? [...p.reels].reverse().slice(3) : p.reels).map((m, idx) => (
                         <MediaCard
                           key={m.code}
                           kind="reel"
                           media={m}
                           desktop={desktop}
-                          onOpen={() => open(p, 'reel', p.reels, idx)}
+                          onOpen={() => open(p, 'reel', p.handle.toLowerCase().includes('vigil') ? [...p.reels].reverse().slice(3) : p.reels, idx)}
                           onEnded={desktop ? undefined : () => scrollNext(i, idx)}
                         />
                       ))}

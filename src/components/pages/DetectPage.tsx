@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useAction } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { PageHeader } from '../ui/PageHeader';
 import { Reveal } from '../ui/Reveal';
 import type { RouteKey } from '../../types';
@@ -10,9 +12,47 @@ const sampleFindings = [
   { ok: true, title: 'No malware payload on static scan', text: 'VirusTotal: 0/94 engines flagged the page content.' },
 ];
 
+function isLikelyUrl(value: string) {
+  return /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i.test(value.trim());
+}
+
 export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
   const [url, setUrl] = useState('amaz0n-verify-account.com');
-  const [scanned, setScanned] = useState(false);
+  const [scan, setScan] = useState<{ verdict: string; score: number; risk: string; reasons: string[]; providers: Array<{ name: string; status: string }> } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const runScan = useAction(api.detection.scan);
+
+  const check = async (input: string, source: 'text' | 'url' | 'image', mimeType?: string) => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await Promise.race([
+        runScan({ input, source, mimeType }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Scan timed out')), 25000)),
+      ]);
+      setScan(response);
+    } catch {
+      setError('The scan service is unavailable. Make sure `npx convex dev` is running, then try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkTextOrUrl = () => {
+    const source = isLikelyUrl(url) ? 'url' : 'text';
+    const input = source === 'url' && !/^https?:\/\//i.test(url) ? `https://${url.trim()}` : url;
+    void check(input, source);
+  };
+
+  const checkDemoScreenshot = async () => {
+    const response = await fetch('/demo-scam-screenshot.png');
+    const blob = await response.blob();
+    const reader = new FileReader();
+    reader.onload = () => void check(String(reader.result).split(',')[1] ?? '', 'image', 'image/demo-scam');
+    reader.readAsDataURL(blob);
+  };
 
   return (
     <>
@@ -34,8 +74,8 @@ export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
               <h3 style={{ marginTop: 'var(--sp-3)' }}>Is this link safe?</h3>
               <div className="checker-input-row" style={{ marginTop: 'var(--sp-5)' }}>
                 <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https:// or paste a message" aria-label="URL or message" />
-                <button className="btn btn-primary" onClick={() => setScanned(true)}>
-                  <i className="ph ph-shield-check" /> Check
+                <button className="btn btn-primary" disabled={loading} onClick={checkTextOrUrl}>
+                  {loading ? <><i className="ph ph-spinner-gap scan-spinner" /> Checking…</> : <><i className="ph ph-shield-check" /> Check</>}
                 </button>
               </div>
 
@@ -48,16 +88,36 @@ export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
                   <br />
                   We extract links, numbers &amp; handles with OCR, then scan them
                 </span>
-                <input type="file" accept="image/*" hidden />
+              <input type="file" accept="image/*" hidden onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => void check(String(reader.result).split(',')[1] ?? '', 'image', file.type);
+                reader.readAsDataURL(file);
+              }} />
               </label>
+              <button type="button" className="demo-screenshot" onClick={checkDemoScreenshot} disabled={loading}>
+                <img src="/demo-scam-screenshot.png" alt="Example suspicious SBI message screenshot" />
+                <span><strong>Try the demo screenshot</strong><small>Analyze an example SBI phishing message</small></span>
+                <i className="ph ph-arrow-right" />
+              </button>
 
               <div className="scan-note">
                 <i className="ph ph-lightning" /> Powered by VirusTotal, Google Safe Browsing &amp; a vision-LLM.
               </div>
+              {loading && <div className="scan-running" role="status" aria-live="polite"><i className="ph ph-circle-notch scan-spinner" /> Analysing your input securely…</div>}
             </Reveal>
 
             <Reveal delay={80} className="card card-pad result">
-              {!scanned ? (
+              {error ? (
+                <div className="alert alert-danger" role="alert"><i className="ph ph-warning" /> {error}</div>
+              ) : loading ? (
+                <div className="result-loading" role="status" aria-live="polite">
+                  <i className="ph ph-circle-notch scan-spinner" />
+                  <b>Checking for known threats…</b>
+                  <span className="muted">This can take a few seconds.</span>
+                </div>
+              ) : !scan ? (
                 <>
                   <span className="eyebrow" style={{ display: 'inline-flex' }}>Result</span>
                   <p className="muted" style={{ marginTop: 'var(--sp-4)' }}>
@@ -69,18 +129,18 @@ export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
                   <div className="risk-head">
                     <div>
                       <span className="eyebrow" style={{ display: 'inline-flex' }}>Risk score</span>
-                      <div className="risk-score" style={{ color: 'var(--danger)' }}>87</div>
+                      <div className="risk-score" style={{ color: scan.risk === 'low' ? 'var(--success)' : scan.risk === 'medium' ? 'var(--warning)' : 'var(--danger)' }}>{scan.score}</div>
                     </div>
-                    <span className="badge badge-danger">
-                      <i className="ph ph-warning-octagon" /> High risk
+                    <span className={`badge badge-${scan.risk === 'low' ? 'success' : scan.risk === 'medium' ? 'warning' : 'danger'}`}>
+                      <i className={`ph ${scan.risk === 'low' ? 'ph-check-circle' : 'ph-warning-octagon'}`} /> {scan.risk} risk
                     </span>
                   </div>
                   <div className="risk-bar" aria-hidden="true">
-                    <div className="risk-fill" style={{ width: '87%' }} />
+                    <div className="risk-fill" style={{ width: `${scan.score}%` }} />
                   </div>
 
                   <div className="finding-list">
-                    {sampleFindings.map((f) => (
+                    {(scan.reasons.length ? scan.reasons.map((reason) => ({ ok: false, title: 'Risk signal detected', text: reason })) : [{ ok: true, title: 'No known risk signal found', text: 'This does not prove the content is safe. Stay cautious before sharing information or paying.' }]).map((f) => (
                       <div key={f.title} className={`finding ${f.ok ? 'ok' : ''}`}>
                         <i className={`ph ${f.ok ? 'ph-check-circle' : 'ph-warning'}`} />
                         <div>
@@ -89,12 +149,6 @@ export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
                         </div>
                       </div>
                     ))}
-                  </div>
-
-                  <div className="source-chips">
-                    <span className="chip">VirusTotal · 2/94 flag</span>
-                    <span className="chip">Safe Browsing · no record</span>
-                    <span className="chip">I4C suspect repo · 14 hits</span>
                   </div>
 
                   <button className="btn btn-danger btn-block" style={{ marginTop: 'var(--sp-5)' }} onClick={() => go('report')}>

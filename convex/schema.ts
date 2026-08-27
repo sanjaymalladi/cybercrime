@@ -27,4 +27,15 @@ export default defineSchema({
     kind: v.union(v.literal('guide'), v.literal('checklist'), v.literal('helpline')),
     href: v.string(),
   }).index('by_slug', ['slug']),
+
+  scanResults: defineTable({
+    source: v.union(v.literal('text'), v.literal('url'), v.literal('image')),
+    inputPreview: v.string(),
+    verdict: v.string(),
+    score: v.number(),
+    risk: v.string(),
+    reasons: v.array(v.string()),
+    extractedText: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index('by_created_at', ['createdAt']),
 });
