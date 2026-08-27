@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Sarkari Web: India's government websites, judged by Reddit</title>
+<script type="module">
+  import 'ux4g-web-components/styles.css';
+  import 'ux4g-web-components/design-system';
+</script>
+<style>
+  :root{
+    --paper:#F5F1E8;
+    --card:#FCFAF4;
+    --ink:#181410;
+    --muted:#6B6458;
+    --line:#E2DCCB;
+    --accent:#B84500;
+    --accent-deep:#7A2E00;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace;
+    --radius:4px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:18px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none;transition:color .15s ease}
+  a:hover{color:var(--accent-deep)}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+  .masthead{padding:44px 0 22px;border-bottom:1px solid var(--line)}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:18px;
+  }
+  .mast-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  h1{
+    font-size:clamp(40px,6.4vw,72px);
+    line-height:1.04;
+    font-weight:700;
+    letter-spacing:-.01em;
+    max-width:14ch;
+  }
+  .dateline{font-family:var(--mono);font-size:13px;color:var(--muted);text-align:right;line-height:1.8}
+  .dateline b{color:var(--ink);font-weight:600}
+
+  nav.index{
+    position:sticky;top:0;z-index:20;
+    background:rgba(245,241,232,.94);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .index-inner{
+    display:flex;gap:8px;overflow-x:auto;
+    padding:12px 28px;max-width:1080px;margin:0 auto;
+    scrollbar-width:thin;
+  }
+  .index-inner a{
+    font-family:var(--mono);font-size:13px;color:var(--ink);
+    padding:5px 11px;border:1px solid var(--line);border-radius:var(--radius);
+    white-space:nowrap;flex:0 0 auto;
+  }
+  .index-inner a:hover{border-color:var(--accent);color:var(--accent)}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:var(--radius);
+    margin:38px 0 0;overflow:hidden;
+  }
+  .stat{background:var(--card);padding:22px 20px}
+  .stat .n{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--accent);line-height:1.1}
+  .stat .l{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+  .intro{display:grid;grid-template-columns:1.5fr 1fr;gap:44px;padding:56px 0 30px}
+  .intro p{font-size:21px;line-height:1.7;color:var(--ink)}
+  .intro p strong{color:var(--accent-deep)}
+  .method{border-left:3px solid var(--accent);padding-left:18px}
+  .method h3{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .method p{font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--muted)}
+
+  .ux4g-demo{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:22px 0 0;padding:18px 20px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius)}
+  .ux4g-demo p{font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--muted)}
+  .ux4g-demo strong{display:block;color:var(--ink);font-size:14px;margin-bottom:3px}
+  .ux4g-demo .ux4g-btn{flex:0 0 auto}
+
+  section.portal{padding:58px 0 10px;scroll-margin-top:70px}
+  .portal-head{display:grid;grid-template-columns:64px 1fr;gap:20px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:26px}
+  .pnum{font-family:var(--mono);font-size:22px;color:var(--accent);font-weight:600}
+  .ptitle{font-size:clamp(26px,3.6vw,40px);line-height:1.1;font-weight:700;letter-spacing:-.01em}
+  .psum{grid-column:2;font-family:var(--mono);font-size:14px;color:var(--muted);line-height:1.6;margin-top:4px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 18px rgba(24,20,16,.07)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .tag{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-deep);background:rgba(184,69,0,.08);padding:3px 8px;border-radius:var(--radius)}
+  .votes{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  .votes b{color:var(--ink)}
+  .card a.t{font-size:17px;line-height:1.4;font-weight:700;color:var(--ink)}
+  .card a.t:hover{color:var(--accent)}
+  .sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:auto}
+  .sub a{color:var(--accent)}
+  .sub a:hover{color:var(--accent-deep)}
+
+  .threads .card{grid-column:span 1}
+  .thread-feature{grid-column:span 3}
+  .thread-feature a.t{font-size:24px;line-height:1.3}
+
+  footer{border-top:1px solid var(--line);margin-top:70px;padding:34px 0 60px}
+  .foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:baseline}
+  .foot p{font-family:var(--mono);font-size:12px;color:var(--muted);max-width:56ch;line-height:1.7}
+  .foot a{font-family:var(--mono);font-size:13px}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .intro{grid-template-columns:1fr;gap:28px}
+    .thread-feature{grid-column:span 2}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .thread-feature{grid-column:span 1}
+    .dateline{text-align:left}
+    .ux4g-demo{align-items:flex-start;flex-direction:column}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">A Reddit Sourced Audit</div>
+    <div class="mast-row">
+      <h1>The Sarkari Web</h1>
+      <div class="dateline">
+        India&rsquo;s government websites, judged by the people who have to use them.<br>
+        <b>August 2026</b> &middot; 93 threads &middot; 17 portals &middot; 30+ subreddits
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="index" aria-label="Jump to a portal">
+  <div class="index-inner">
+    <a href="#epfo">EPFO</a>
+    <a href="#income-tax">Income Tax</a>
+    <a href="#aadhaar">Aadhaar</a>
+    <a href="#passport">Passport</a>
+    <a href="#irctc">IRCTC</a>
+    <a href="#gst">GST</a>
+    <a href="#exams">Exams</a>
+    <a href="#parivahan">Parivahan</a>
+    <a href="#digilocker">DigiLocker</a>
+    <a href="#voter">Voter</a>
+    <a href="#mca">MCA</a>
+    <a href="#india-post">India Post</a>
+    <a href="#evisa">eVisa</a>
+    <a href="#ecourts">eCourts</a>
+    <a href="#health">Health</a>
+    <a href="#banks">PSU Banks</a>
+    <a href="#threads">Viral threads</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <div class="stats" aria-label="Report statistics">
+    <div class="stat"><div class="n">93</div><div class="l">Threads documented</div></div>
+    <div class="stat"><div class="n">3,165</div><div class="l">Top upvotes</div></div>
+    <div class="stat"><div class="n">17</div><div class="l">Government portals</div></div>
+    <div class="stat"><div class="n">30+</div><div class="l">Subreddits cited</div></div>
+  </div>
+
+  <div class="intro">
+    <div>
+      <p>India ships software that books a crore train tickets a day and moves money for a billion people. And yet the same country runs portals where the OTP never arrives, the claim stays &ldquo;under process&rdquo; for months, and your refund quietly becomes a number in a status bar.</p>
+      <p>This page collects the loudest, most upvoted complaints about Indian government websites from Reddit, organized portal by portal. <strong>Every card links to the original thread.</strong></p>
+    </div>
+    <div class="method">
+      <h3>How this was built</h3>
+      <p>Every entry is a real Reddit post found with the agent-reach research tool in August 2026. Each card links to the original thread. Upvote counts are as reported at search time and can change. Card titles are short summaries, not the original post text.</p>
+    </div>
+  </div>
+
+  <aside class="ux4g-demo" aria-label="UX4G integration example">
+    <p><strong>Built with UX4G</strong>A live example of the government-ready component system used on this page.</p>
+    <button class="ux4g-btn ux4g-btn-primary ux4g-btn-md" type="button" onclick="document.getElementById('threads').scrollIntoView({ behavior: 'smooth' })">Explore the threads</button>
+  </aside>
+
+  <section class="portal" id="epfo">
+    <div class="portal-head">
+      <div class="pnum">01</div>
+      <div>
+        <h2 class="ptitle">EPFO &amp; UMANG</h2>
+        <p class="psum">The Employees&rsquo; Provident Fund Organisation and its companion app draw the heaviest fire on Reddit. Login, OTP, claims and grievances all fail in different creative ways.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Claims</span><span class="votes"><b>696</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1ijob33/epfo_is_a_joke_on_common_man_which_is_designed_to/" target="_blank" rel="noopener">EPFO is a joke on the common man, designed to fail</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span><span class="votes"><b>72</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1unzwwq/umang_app_still_not_working_epfo_services/" target="_blank" rel="noopener">UMANG app still not working for EPFO services</a><div class="sub">r/epfoindia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Claims</span><span class="votes"><b>69</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1uswb2c/epfo_rejected_my_form31_saying_insufficient/" target="_blank" rel="noopener">EPFO rejected my Form 31 claim, insufficient proof</a><div class="sub">r/epfoindia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>30</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1q6luey/the_worst_thing_in_the_world_is_epfo_website/" target="_blank" rel="noopener">The worst thing in the world is the EPFO website</a><div class="sub">r/epfoindia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Grievance</span><span class="votes"><b>30</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1tmzazu/epfo_grievances_closed_without_resolution_finally/" target="_blank" rel="noopener">Grievances closed without a resolution</a><div class="sub">r/epfoindia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Login</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1sgkd9i/epfo_portal_not_signing_in_because_of_otp_not/" target="_blank" rel="noopener">OTP not received, the portal will not sign in</a><div class="sub">r/epfoindia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Downtime</span></div><a class="t" href="https://www.reddit.com/r/epfoindiahelp/comments/1v39h3y/epfo_unified_member_portal_down_again_users/" target="_blank" rel="noopener">Unified member portal down again</a><div class="sub">r/epfoindiahelp</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/EPFO/comments/1vot588/umang_app_is_completely_down_from_past_some_days/" target="_blank" rel="noopener">UMANG app completely down for days</a><div class="sub">r/EPFO</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Downtime</span></div><a class="t" href="https://www.reddit.com/r/epfoindia/comments/1uwbwxb/epfo_server_under_maintenance/" target="_blank" rel="noopener">EPFO server under maintenance</a><div class="sub">r/epfoindia</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="income-tax">
+    <div class="portal-head">
+      <div class="pnum">02</div>
+      <div>
+        <h2 class="ptitle">Income Tax eFiling</h2>
+        <p class="psum">Tens of millions file through this portal every year. Reddit documents bugs, stuck refunds, double payments and validation errors that block an entire return.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Bug</span><span class="votes"><b>3,165</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/Indian_flex/comments/1o2r7c1/discovered_a_critical_bug_in_indias_income_tax/" target="_blank" rel="noopener">A critical bug found in the income tax eFiling portal</a><div class="sub">r/Indian_flex</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Refunds</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1nht3s1/paid_demand_twice_but_itr_still_showing_pending/" target="_blank" rel="noopener">Paid my demand twice, ITR still shows pending</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Filing</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1vsj9gx/itr3_schedule_fsi_defect_a_error_figures_match/" target="_blank" rel="noopener">ITR 3 rejects Schedule FSI with a defect error</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Payment</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1rrwjtn/pay_tds26qb_without_logging_into_income_portal/" target="_blank" rel="noopener">Pay TDS 26QB without logging into the portal</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Profile</span></div><a class="t" href="https://www.reddit.com/r/IncomeTaxReturnIndia/comments/1qf3pwv/name_mismatch_between_efiling_and_panaadhar/" target="_blank" rel="noopener">Name mismatch between eFiling and PAN Aadhaar</a><div class="sub">r/IncomeTaxReturnIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Refunds</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1vsfg24/itr_3_processing_not_start/" target="_blank" rel="noopener">ITR 3 processing has not started</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Filing</span></div><a class="t" href="https://www.reddit.com/r/india/comments/p2uy8h/is_the_new_itr_site_ready_for_filing_or_are_there/" target="_blank" rel="noopener">Is the new ITR site ready for filing?</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="aadhaar">
+    <div class="portal-head">
+      <div class="pnum">03</div>
+      <div>
+        <h2 class="ptitle">Aadhaar &amp; UIDAI</h2>
+        <p class="psum">The world&rsquo;s largest biometric identity runs on a website and app that users describe as painful, fragile and slow to update.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>75</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/jk51ou/the_terrible_pain_that_is_aadhaar_uidai_website/" target="_blank" rel="noopener">The terrible pain that is the Aadhaar UIDAI website</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Enrollment</span><span class="votes"><b>8</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1k548ne/aadhaar_enrollment_issue/" target="_blank" rel="noopener">Aadhaar enrollment issue</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Updates</span></div><a class="t" href="https://www.reddit.com/r/LegalAdviceIndia/comments/1oh9p0n/need_help_fixing_aadhaar_name_update_issue_limit/" target="_blank" rel="noopener">Fixing an Aadhaar name update hits a limit</a><div class="sub">r/LegalAdviceIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Privacy</span><span class="votes"><b>1,782</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/IndiaTech/comments/1v1i2bw/edward_snowden_on_aadhar_threat_to_indian/" target="_blank" rel="noopener">Edward Snowden on Aadhaar, a threat to Indians</a><div class="sub">r/IndiaTech</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="passport">
+    <div class="portal-head">
+      <div class="pnum">04</div>
+      <div>
+        <h2 class="ptitle">Passport Seva</h2>
+        <p class="psum">OTP failures, surprise photo rules and region mismatches turn what should be a simple renewal into a multi week saga, at home and abroad.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">OTP</span><span class="votes"><b>7</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/Passports/comments/1nkc6rp/has_anyone_else_faced_issues_with_otps_on_the/" target="_blank" rel="noopener">OTP issues on the Passport Seva site</a><div class="sub">r/Passports</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Rules</span><span class="votes"><b>41</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1oitdai/passport_seva_20_photo_specifications_changes_vfs/" target="_blank" rel="noopener">Passport Seva 2.0 changes the photo specifications</a><div class="sub">r/nri</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Experience</span><span class="votes"><b>54</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/pune/comments/1qsqtqi/my_passport_application_experience_pune_india/" target="_blank" rel="noopener">My passport application experience, Pune</a><div class="sub">r/pune</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/AskIndia/comments/1k7ikxx/help_accidentally_selected_wrong_rpo_when/" target="_blank" rel="noopener">Accidentally selected the wrong RPO</a><div class="sub">r/AskIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span></div><a class="t" href="https://www.reddit.com/r/india/comments/zg4w6d/need_passport_website_help/" target="_blank" rel="noopener">Need help with the passport website</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1vo0p4m/indian_passport_renewal_in_usa_experience/" target="_blank" rel="noopener">Passport renewal from the USA, an experience</a><div class="sub">r/nri</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1uox87u/needlessly_complicated_and_confusing_process_to/" target="_blank" rel="noopener">A needlessly complicated and confusing process</a><div class="sub">r/nri</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="irctc">
+    <div class="portal-head">
+      <div class="pnum">05</div>
+      <div>
+        <h2 class="ptitle">IRCTC &amp; Railways</h2>
+        <p class="psum">The railway booking engine moves a billion tickets a year, yet its app and website keep topping lists of the worst user experiences in the country.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Login</span></div><a class="t" href="https://www.reddit.com/r/indianrailways/comments/1mc0o4d/please_help_irctc_login_page_problem/" target="_blank" rel="noopener">IRCTC login page problem</a><div class="sub">r/indianrailways</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/IndianRailway/comments/16goeaw/terrible_experience_with_irctc_app/" target="_blank" rel="noopener">Terrible experience with the IRCTC app</a><div class="sub">r/IndianRailway</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Payments</span></div><a class="t" href="https://www.reddit.com/r/IndiaTech/comments/1uz3x7a/irctc_ewallet_ate_my_money_twice_in_10_minutes/" target="_blank" rel="noopener">IRCTC ewallet ate my money twice in ten minutes</a><div class="sub">r/IndiaTech</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/TwentiesIndia/comments/1s34xsj/the_shitiest_app_ive_came_accross/" target="_blank" rel="noopener">The shittiest app I have come across</a><div class="sub">r/TwentiesIndia</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="gst">
+    <div class="portal-head">
+      <div class="pnum">06</div>
+      <div>
+        <h2 class="ptitle">GST Portal</h2>
+        <p class="psum">Small businesses live on the GST portal. A dead submit button or a returned welcome letter means a registration and an invoice cycle stall at once.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Filing</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1k45itr/gst_portal_declaration_of_turnover_submit_button/" target="_blank" rel="noopener">Declaration of turnover, the submit button fails</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1uzdg7c/urgent_gst_issue_welcome_letter_returned_email/" target="_blank" rel="noopener">Urgent GST issue, welcome letter returned by email</a><div class="sub">r/IndiaTax</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/IndiaTax/comments/1vsecfa/just_registered_my_company_on_gst_how_tf_did/" target="_blank" rel="noopener">Just registered my company on GST, how is this possible</a><div class="sub">r/IndiaTax</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="exams">
+    <div class="portal-head">
+      <div class="pnum">07</div>
+      <div>
+        <h2 class="ptitle">Exam Portals</h2>
+        <p class="psum">Students chasing a competitive exam face portals that buckle exactly when a form deadline is near, from NTA and UPSC to SSC and NIOS.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Downtime</span></div><a class="t" href="https://www.reddit.com/r/NTA/comments/1rn0jo7/nga_that_nta_website_is_not_working/" target="_blank" rel="noopener">NTA website is not working</a><div class="sub">r/NTA</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/UPSC/comments/1mfj2ih/upsc_universal_registrationotr_issue_the_details/" target="_blank" rel="noopener">UPSC OTR registration issue</a><div class="sub">r/UPSC</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/UPSC/comments/1tp21d2/clarification_regarding_upsc_otr_registration/" target="_blank" rel="noopener">UPSC OTR registration clarification</a><div class="sub">r/UPSC</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Status</span></div><a class="t" href="https://www.reddit.com/r/UPSC/comments/1lvu3aw/nda_ii_2025_application_submitted_but_upsc_portal/" target="_blank" rel="noopener">NDA application submitted but the portal shows nothing</a><div class="sub">r/UPSC</div></div>
+      <div class="card"><div class="card-top"><span class="tag">OTP</span></div><a class="t" href="https://www.reddit.com/r/TeenIndia/comments/1hk3efr/otr_not_received_is_the_upsc_website_not_working/" target="_blank" rel="noopener">OTR not received, is the UPSC website broken</a><div class="sub">r/TeenIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/ssc/comments/1tsrb5b/is_the_issue_of_registration_occurring_only_with/" target="_blank" rel="noopener">Registration issue on the SSC portal</a><div class="sub">r/ssc</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span></div><a class="t" href="https://www.reddit.com/r/NIOS_Students/comments/1v7pl3x/nios_website_issue/" target="_blank" rel="noopener">NIOS website issue</a><div class="sub">r/NIOS_Students</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="parivahan">
+    <div class="portal-head">
+      <div class="pnum">08</div>
+      <div>
+        <h2 class="ptitle">Parivahan, Vahan, Sarathi</h2>
+        <p class="psum">Driving licences and vehicle registration live in a tangle of portals that still trip up lakhs of drivers, from learner tests to state transfers.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>134</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/indianbikes/comments/1mubqnv/this_is_real_people_found_this_on_the_parivahan/" target="_blank" rel="noopener">Found this on the Parivahan site</a><div class="sub">r/indianbikes</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/CarsIndia/comments/1pz4tj0/updation_on_vahan_sarathi_portals/" target="_blank" rel="noopener">Updation on the Vahan Sarathi portals</a><div class="sub">r/CarsIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Test</span></div><a class="t" href="https://www.reddit.com/r/indiasocial/comments/1rn67aa/smartlock_for_lltest_frozen_my_laptop/" target="_blank" rel="noopener">Smartlock for the learner test froze my laptop</a><div class="sub">r/indiasocial</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span><span class="votes"><b>493</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/CarsIndia/comments/1v6dy5a/everything_i_went_through_to_reregister_my_delhi/" target="_blank" rel="noopener">Registering my Delhi car again, everything I went through</a><div class="sub">r/CarsIndia</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="digilocker">
+    <div class="portal-head">
+      <div class="pnum">09</div>
+      <div>
+        <h2 class="ptitle">DigiLocker</h2>
+        <p class="psum">The government&rsquo;s document vault is where certificates go missing right before an application deadline, and where record mismatches surface too late.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Certificates</span></div><a class="t" href="https://www.reddit.com/r/ugcnetdaily/comments/1tcmmjx/ugc_net_digilocker_problem/" target="_blank" rel="noopener">UGC NET DigiLocker problem</a><div class="sub">r/ugcnetdaily</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Scorecard</span></div><a class="t" href="https://www.reddit.com/r/mht_cet/comments/1urrxwr/follow_up_on_the_digilocker_jee_mains_scorecard/" target="_blank" rel="noopener">Follow up on the DigiLocker JEE mains scorecard</a><div class="sub">r/mht_cet</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Certificates</span></div><a class="t" href="https://www.reddit.com/r/CBSE/comments/1vn819t/digilocker_problem/" target="_blank" rel="noopener">DigiLocker problem</a><div class="sub">r/CBSE</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Upload</span></div><a class="t" href="https://www.reddit.com/r/JEEAdv26dailyupdates/comments/1twd4lk/cant_upload_12th_marksheet_via_digilocker_in/" target="_blank" rel="noopener">Cannot upload the 12th marksheet via DigiLocker</a><div class="sub">r/JEEAdv26dailyupdates</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Records</span></div><a class="t" href="https://www.reddit.com/r/CUETards/comments/1unqtyd/need_help_cuet_2026_dob_mismatch_between_nta/" target="_blank" rel="noopener">CUET 2026 DOB mismatch between NTA records</a><div class="sub">r/CUETards</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="voter">
+    <div class="portal-head">
+      <div class="pnum">10</div>
+      <div>
+        <h2 class="ptitle">Voter &amp; Elections</h2>
+        <p class="psum">The Election Commission&rsquo;s voter portal and NVSP handle registration, correction and deletion of voter records. Reddit users document OTP failures, stuck applications and privacy scares.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/TeenIndia/comments/1plona2/online_voter_id_registration_link_not_working/" target="_blank" rel="noopener">Online voter ID registration link not working</a><div class="sub">r/TeenIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Security</span><span class="votes"><b>167</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/s4h764/iff_explains_an_election_commission_vulnerability/" target="_blank" rel="noopener">An Election Commission vulnerability exposed phone numbers</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Correction</span></div><a class="t" href="https://www.reddit.com/r/bangalore/comments/1uorlhh/question_regarding_voter_id_correction_for_sir/" target="_blank" rel="noopener">Voter ID correction for the SIR process</a><div class="sub">r/bangalore</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1pq4upx/removing_voter_id_to_get_oci_card_using_online/" target="_blank" rel="noopener">Removing a voter ID for the OCI card online</a><div class="sub">r/nri</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/india/comments/15yvlgn/question_about_new_voter_application_on_nvsp/" target="_blank" rel="noopener">New voter application on the NVSP portal</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Downtime</span><span class="votes"><b>35</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/b1oap0/why_is_the_nvsp_portal_not_opening/" target="_blank" rel="noopener">The NVSP portal will not open</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="mca">
+    <div class="portal-head">
+      <div class="pnum">11</div>
+      <div>
+        <h2 class="ptitle">MCA</h2>
+        <p class="psum">The Ministry of Corporate Affairs runs the portals every startup must survive to exist. Reddit records the friction of company incorporation, from unlinked signatures to unexpected security clearances.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Registration</span></div><a class="t" href="https://www.reddit.com/r/LegalHelplineIndia/comments/1t83iit/opc_registration_on_mca_portal_dsc_of_nominee_not/" target="_blank" rel="noopener">OPC registration blocked when the DSC is not linked</a><div class="sub">r/LegalHelplineIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">NRI</span></div><a class="t" href="https://www.reddit.com/r/LegalHelplineIndia/comments/1t0pwui/mca_security_clearance_for_nri_directors_from/" target="_blank" rel="noopener">MCA security clearance for NRI directors</a><div class="sub">r/LegalHelplineIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Process</span></div><a class="t" href="https://www.reddit.com/r/StartUpIndia/comments/1vsjh9e/how_long_did_your_pvt_ltd_registration_actually/" target="_blank" rel="noopener">How long does Pvt Ltd registration actually take</a><div class="sub">r/StartUpIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Cost</span><span class="votes"><b>187</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/StartUpIndia/comments/1o3l968/the_real_cost_of_that_6999_company_registration/" target="_blank" rel="noopener">The real cost of that cheap registration package</a><div class="sub">r/StartUpIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>13</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/4grwpo/why_the_mca21_portal_is_a_pain_to_use/" target="_blank" rel="noopener">The MCA21 portal is a pain to use</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="india-post">
+    <div class="portal-head">
+      <div class="pnum">12</div>
+      <div>
+        <h2 class="ptitle">India Post</h2>
+        <p class="psum">The postal service&rsquo;s website is where parcels are tracked and where tracking often goes to die. Reddit documents outages, stale statuses and parcels handed to strangers.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Downtime</span><span class="votes"><b>79</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1m6kf3i/india_post_website_down_for_over_a_week_no/" target="_blank" rel="noopener">India Post website down for over a week</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>17</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1mi3yic/pathetic_condition_of_india_post_website/" target="_blank" rel="noopener">The pathetic condition of the India Post website</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Tracking</span></div><a class="t" href="https://www.reddit.com/r/NIOS_Students/comments/1vamjr9/my_delivery_agent_took_my_india_post_parcel_and/" target="_blank" rel="noopener">My India Post parcel was handed to a stranger</a><div class="sub">r/NIOS_Students</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Tracking</span></div><a class="t" href="https://www.reddit.com/r/NIOS_Students/comments/1v64vbc/nios_says_my_books_were_dispatched_but_india_post/" target="_blank" rel="noopener">Dispatched books, but the tracking shows nothing booked</a><div class="sub">r/NIOS_Students</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="evisa">
+    <div class="portal-head">
+      <div class="pnum">13</div>
+      <div>
+        <h2 class="ptitle">eVisa</h2>
+        <p class="psum">Foreign visitors face the eVisa portal before they even land. Reddit collects the complaints about a website that rejects valid forms and stays silent on processing times.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>41</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1qbatj6/the_india_evisa_website_is_so_bad/" target="_blank" rel="noopener">The India eVisa website is so bad</a><div class="sub">r/nri</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Processing</span></div><a class="t" href="https://www.reddit.com/r/travel/comments/1pd2nrr/india_e_visa_processing_time_and_confirmation_of/" target="_blank" rel="noopener">Processing time with no confirmation of submission</a><div class="sub">r/travel</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Application</span><span class="votes"><b>10</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/IndianEvisa/comments/1r4obq3/recent_evisa_application_feb_2026/" target="_blank" rel="noopener">Recent eVisa application experience</a><div class="sub">r/IndianEvisa</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Help</span><span class="votes"><b>20</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/travel/comments/1pdbvv6/india_visa_application_solution_december_2025/" target="_blank" rel="noopener">A working solution for the India visa application</a><div class="sub">r/travel</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Questions</span></div><a class="t" href="https://www.reddit.com/r/india_tourism/comments/1ujruie/india_evisa/" target="_blank" rel="noopener">Questions about the India eVisa</a><div class="sub">r/india_tourism</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>489</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/16cz25a/indian_evisa_website_awful/" target="_blank" rel="noopener">The Indian eVisa website is awful</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Application</span><span class="votes"><b>8</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/visas/comments/1i7kte9/india_evisa_application_website_issue/" target="_blank" rel="noopener">Stuck in a loop on the eVisa form</a><div class="sub">r/visas</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span></div><a class="t" href="https://www.reddit.com/r/india/comments/ypqxrp/is_the_indian_visa_application_website_working/" target="_blank" rel="noopener">Is the visa application website working for you</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="ecourts">
+    <div class="portal-head">
+      <div class="pnum">14</div>
+      <div>
+        <h2 class="ptitle">eCourts</h2>
+        <p class="psum">The judiciary&rsquo;s case search portal is where lawyers and litigants hunt for case status. Reddit documents the workarounds people build because the official tools are so weak.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">Case search</span><span class="votes"><b>8</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/LegalAdviceIndia/comments/1rh7umk/indias_largest_case_records_database/" target="_blank" rel="noopener">Getting a case record from eCourts India</a><div class="sub">r/LegalAdviceIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Status</span></div><a class="t" href="https://www.reddit.com/r/LegalHelplineIndia/comments/1stb0jm/how_to_check_court_case_status_online_in_india/" target="_blank" rel="noopener">Checking court case status online for all courts</a><div class="sub">r/LegalHelplineIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">API</span></div><a class="t" href="https://www.reddit.com/r/IndiaLaw/comments/1rix1h4/ive_been_using_ecourtsindiacoms_api_about_indias/" target="_blank" rel="noopener">Working with the eCourts India API</a><div class="sub">r/IndiaLaw</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Guide</span></div><a class="t" href="https://www.reddit.com/r/LegalAdviceIndia/comments/1quvmlu/stepbystep_how_to_find_and_correctly_use_your_cnr/" target="_blank" rel="noopener">Using your CNR to check case status online</a><div class="sub">r/LegalAdviceIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Website</span><span class="votes"><b>8</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/gh6021/several_broken_links_on_indian_courts_website/" target="_blank" rel="noopener">Several broken links on the courts website</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="health">
+    <div class="portal-head">
+      <div class="pnum">15</div>
+      <div>
+        <h2 class="ptitle">Health &amp; CoWIN</h2>
+        <p class="psum">CoWIN and the health records that grew out of it handled a billion vaccination doses. Reddit remembers the platform that went down, lost records and leaked data.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">API</span><span class="votes"><b>300</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/nb9qd1/indias_vaccinationbooking_api_criticised_for/" target="_blank" rel="noopener">Vaccination booking API criticised for bugs and exclusions</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Records</span><span class="votes"><b>16</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/nozenk/ive_got_first_shot_of_my_covid_19_vaccine_yet_i/" target="_blank" rel="noopener">Vaccinated, but CoWIN shows no record</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span><span class="votes"><b>22</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/lvx3s0/cowin_app_problems_and_ground_reality_of/" target="_blank" rel="noopener">CoWIN app problems and the ground reality</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">ABHA</span><span class="votes"><b>27</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1cfyr42/while_generating_abha_they_asked_aadhaar_details/" target="_blank" rel="noopener">Forced consent for other ID options on ABHA</a><div class="sub">r/india</div></div>
+    </div>
+  </section>
+
+  <section class="portal" id="banks">
+    <div class="portal-head">
+      <div class="pnum">16</div>
+      <div>
+        <h2 class="ptitle">PSU Banks</h2>
+        <p class="psum">Public sector banks moved banking to apps and net banking, and the apps often move slower than the queues outside branches. SBI YONO leads the complaints.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-top"><span class="tag">App</span><span class="votes"><b>97</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1i2q37v/yono_sbi_app_broken_on_ios/" target="_blank" rel="noopener">YONO SBI app broken on iOS</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/IndiaTech/comments/1tp8ezn/yono_sbi_app_keeps_crashing_cannot_set_up_upi_or/" target="_blank" rel="noopener">Yono keeps crashing, cannot set up UPI</a><div class="sub">r/IndiaTech</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/1pldyvd/sbi_yono_doesnt_work_suddenly/" target="_blank" rel="noopener">SBI Yono stopped working suddenly</a><div class="sub">r/nri</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span></div><a class="t" href="https://www.reddit.com/r/XiaomiIndiaOfficial/comments/1kw2ov6/yono_sbi_infinite_loading_issue/" target="_blank" rel="noopener">Yono SBI stuck in infinite loading</a><div class="sub">r/XiaomiIndiaOfficial</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Payments</span></div><a class="t" href="https://www.reddit.com/r/CreditCardsIndia/comments/1vckflm/sbi_unipay_website_fails_with_sbi_virtual_debit/" target="_blank" rel="noopener">Unipay fails with a virtual debit card</a><div class="sub">r/CreditCardsIndia</div></div>
+      <div class="card"><div class="card-top"><span class="tag">UPI</span><span class="votes"><b>13</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/UPI/comments/1rxdyur/upi_transactions_failing_above_1000_on_all_apps/" target="_blank" rel="noopener">UPI payments failing above a thousand rupees</a><div class="sub">r/UPI</div></div>
+      <div class="card"><div class="card-top"><span class="tag">App</span><span class="votes"><b>481</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/india/comments/11snj0p/my_god_why_is_the_sbi_yono_app_so_completely/" target="_blank" rel="noopener">Why the SBI YONO app is so completely useless</a><div class="sub">r/india</div></div>
+      <div class="card"><div class="card-top"><span class="tag">NRI</span></div><a class="t" href="https://www.reddit.com/r/nri/comments/18l0xof/yono_app/" target="_blank" rel="noopener">YONO for an NRI account with a US phone</a><div class="sub">r/nri</div></div>
+    </div>
+  </section>
+
+  <section class="portal threads" id="threads">
+    <div class="portal-head">
+      <div class="pnum">17</div>
+      <div>
+        <h2 class="ptitle">The Viral Threads</h2>
+        <p class="psum">Sometimes the whole internet complains at once. These are the threads where thousands of Indians compared notes on the same broken portals.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card thread-feature"><div class="card-top"><span class="tag">Meta</span><span class="votes"><b>1,083</b> upvotes &middot; 161 comments</span></div><a class="t" href="https://www.reddit.com/r/india/comments/1p10ish/india_is_a_global_tech_leader_ok_then_why_do/" target="_blank" rel="noopener">India is a global tech leader. OK, then why do government websites look like they are run by a potato?</a><div class="sub">r/india, names EPFO, UMANG, Aadhaar, Passport Seva, eVisa</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Meta</span><span class="votes"><b>1,028</b> upvotes</span></div><a class="t" href="https://www.reddit.com/r/IndiaTech/comments/1p0cqi8/worst_app_ui_i_will_go_first/" target="_blank" rel="noopener">Worst App UI, I will go first</a><div class="sub">r/IndiaTech</div></div>
+      <div class="card"><div class="card-top"><span class="tag">Meta</span></div><a class="t" href="https://www.reddit.com/r/indiandevs/comments/1twv0qw/i_created_an_indian_government_website_style_vs/" target="_blank" rel="noopener">I recreated an Indian government website in a different style</a><div class="sub">r/indiandevs</div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <p>Sources are public Reddit threads, linked from every card. Built as a demonstration project for the Varun Mayya hackathon, August 2026.</p>
+    <a href="#top">Back to top</a>
+  </div>
+</footer>
+
+</body>
+</html>
