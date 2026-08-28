@@ -169,10 +169,12 @@ const profileTones = ['var(--navy-2)', '#0f3b34'];
 const IG_BASE = 'https://www.instagram.com';
 
 // Route Instagram media through our same-origin proxy so the browser never
-// hotlinks fbcdn directly (which Instagram blocks). No local download — the
-// server streams the bytes back from our own origin.
+// hotlinks fbcdn directly (which Instagram blocks). Official I4C images are
+// safe to load from their source host and must bypass the local-only proxy on Vercel.
 function proxy(u?: string) {
-  return u ? `/api/ig-media?u=${encodeURIComponent(u)}` : '';
+  if (!u) return '';
+  if (u.startsWith('https://cybercrime.gov.in/')) return u;
+  return `/api/ig-media?u=${encodeURIComponent(u)}`;
 }
 
 function useIsDesktop() {
