@@ -572,6 +572,37 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
 
           <hr className="divider" />
 
+          <div className="section-head awareness-video-head" style={{ marginBottom: 'var(--sp-5)' }}>
+            <span className="eyebrow" style={{ display: 'inline-flex' }}>
+              <i className="ph ph-youtube-logo" /> Official video
+            </span>
+            <h2 style={{ marginTop: 'var(--sp-3)' }}>Operation 1930</h2>
+            <p className="lede">Learn how India’s cyber fraud helpline helps citizens respond quickly to financial scams.</p>
+          </div>
+
+          <div className="awareness-video-card">
+            <div className="awareness-video-frame">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/i9BI4ePKHOg"
+                title="Operation 1930"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+            <div className="awareness-video-meta">
+              <div>
+                <b>Operation 1930</b>
+                <span>Cyber fraud response and reporting awareness</span>
+              </div>
+              <a href="https://www.youtube.com/watch?v=i9BI4ePKHOg" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
+                Watch on YouTube <i className="ph ph-arrow-up-right" />
+              </a>
+            </div>
+          </div>
+
+          <hr className="divider" />
+
           <div className="section-head gov-section-head" style={{ marginBottom: 'var(--sp-5)' }}>
             <span className="eyebrow" style={{ display: 'inline-flex' }}>
               <i className="ph ph-images" /> Images 3
