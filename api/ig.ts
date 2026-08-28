@@ -11,7 +11,9 @@ const cache = new Map<string, { at: number; data: unknown }>();
 const TTL = 10 * 60 * 1000;
 
 async function getProfile(username: string) {
-  const response = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${username}`, { headers: HEADERS });
+  // i.instagram.com uses the same public response shape with a separate edge
+  // path, which is more reliable for serverless datacenter requests.
+  const response = await fetch(`https://i.instagram.com/api/v1/users/web_profile_info/?username=${username}`, { headers: HEADERS });
   if (!response.ok) throw new Error(`Instagram returned ${response.status}`);
   const payload = await response.json() as any;
   const user = (payload.graphql || payload.data)?.user;
