@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { RouteKey } from '../../types';
-import { LanguageModal, languageName } from '../report/ComplaintFlow';
+import { LanguageModal } from '../report/ComplaintFlow';
+import { useI18n, type Locale } from '../../i18n';
 
 const links: { route: RouteKey; label: string }[] = [
   { route: 'report', label: 'Report' },
@@ -12,8 +13,8 @@ const links: { route: RouteKey; label: string }[] = [
 
 export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (route: RouteKey) => void }) {
   const [open, setOpen] = useState(false);
-  const [lang, setLang] = useState('en-IN');
   const [langOpen, setLangOpen] = useState(false);
+  const { locale, setLocale, t } = useI18n();
 
   const go = (r: RouteKey) => {
     onNavigate(r);
@@ -28,8 +29,8 @@ export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (ro
             <i className="ph ph-bank" aria-hidden="true" />
           </span>
           <span>
-            Cyber Crime India
-            <small>Report · Detect · Track</small>
+            {t('brand.name')}
+            <small>{t('brand.tagline')}</small>
           </span>
         </button>
 
@@ -44,7 +45,7 @@ export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (ro
                 go(l.route);
               }}
             >
-              {l.label}
+              {t(`nav.${l.route}`)}
             </a>
           ))}
         </nav>
@@ -58,13 +59,13 @@ export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (ro
               aria-expanded={langOpen}
               onClick={() => setLangOpen((o) => !o)}
             >
-              {languageName(lang)} <i className="ph ph-caret-down" aria-hidden="true" />
+              {locale === 'hi' ? 'हिन्दी' : locale === 'en' ? 'English' : locale.toUpperCase()} <i className="ph ph-caret-down" aria-hidden="true" />
             </button>
-            {langOpen && <LanguageModal value={lang} onChange={(next) => { setLang(next); setLangOpen(false); }} onClose={() => setLangOpen(false)} />}
+            {langOpen && <LanguageModal value={`${locale}-IN`} showAutoDetect={false} onChange={(next) => { const code = next.split('-')[0]; const nextLocale: Locale = code === 'unknown' ? 'en' : code as Locale; setLocale(nextLocale); setLangOpen(false); }} onClose={() => setLangOpen(false)} />}
           </div>
 
           <a className="btn btn-danger btn-sm call-btn" href="tel:1930">
-            <i className="ph ph-phone" aria-hidden="true" /> Call 1930
+            <i className="ph ph-phone" aria-hidden="true" /> {t('nav.call')}
           </a>
 
           <button

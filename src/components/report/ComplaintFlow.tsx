@@ -127,7 +127,11 @@ export function ComplaintFlow() {
           </div>
 
           {mode === 'voice' ? (
-            <VoicePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
+            import.meta.env.VITE_CONVEX_URL ? (
+              <VoicePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
+            ) : (
+              <VoiceUnavailablePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
+            )
           ) : (
             <form className="card card-pad" style={{ marginTop: 'var(--sp-5)' }} onSubmit={next}>
               <div className="stepper">
@@ -245,6 +249,22 @@ export function ComplaintFlow() {
         </div>
       </section>
     </>
+  );
+}
+
+function VoiceUnavailablePane({ value, onChange, onSubmit }: { value: string; onChange: (value: string) => void; onSubmit: () => void }) {
+  return (
+    <div className="card card-pad voice-stage">
+      <span className="eyebrow" style={{ display: 'inline-flex' }}>Voice-assisted reporting</span>
+      <div className="alert alert-warning" role="alert" style={{ width: '100%', maxWidth: 560 }}>
+        <i className="ph ph-warning" />
+        <span>Voice transcription is not configured in production. You can type your complaint below.</span>
+      </div>
+      <textarea className="textarea" value={value} onChange={(event) => onChange(event.target.value)} placeholder="Type your complaint here…" aria-label="Complaint" />
+      <button type="button" className="btn btn-primary voice-submit" onClick={onSubmit} disabled={!value.trim()}>
+        Submit complaint <span className="btn-ico"><i className="ph ph-arrow-right" /></span>
+      </button>
+    </div>
   );
 }
 
@@ -415,8 +435,9 @@ const voiceLanguages = [['unknown', 'Auto-detect any language'], ['en-IN', 'Engl
 
 export function languageName(code: string) { return voiceLanguages.find(([value]) => value === code)?.[1] ?? 'Auto-detect any language'; }
 
-export function LanguageModal({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
-  const columns = [voiceLanguages.slice(0, 8), voiceLanguages.slice(8, 16), voiceLanguages.slice(16)];
+export function LanguageModal({ value, onChange, onClose, showAutoDetect = true }: { value: string; onChange: (value: string) => void; onClose: () => void; showAutoDetect?: boolean }) {
+  const languages = showAutoDetect ? voiceLanguages : voiceLanguages.filter(([code]) => code !== 'unknown');
+  const columns = [languages.slice(0, 8), languages.slice(8, 16), languages.slice(16)];
   return createPortal(<div className="language-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="language-modal" role="dialog" aria-modal="true" aria-labelledby="language-title">
       <header><div><i className="ph ph-globe" /><div><h3 id="language-title">Select language</h3><p>Choose your preferred complaint language</p></div></div><button type="button" className="language-close" onClick={onClose} aria-label="Close language selector"><i className="ph ph-x" /></button></header>

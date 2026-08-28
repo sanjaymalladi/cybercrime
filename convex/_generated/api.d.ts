@@ -12,6 +12,8 @@ import type * as detection from "../detection.js";
 import type * as mutations from "../mutations.js";
 import type * as queries from "../queries.js";
 import type * as seed from "../seed.js";
+import type * as translationSeed from "../translationSeed.js";
+import type * as translations from "../translations.js";
 import type * as voice from "../voice.js";
 
 import type {
@@ -25,6 +27,8 @@ declare const fullApi: ApiFromModules<{
   mutations: typeof mutations;
   queries: typeof queries;
   seed: typeof seed;
+  translationSeed: typeof translationSeed;
+  translations: typeof translations;
   voice: typeof voice;
 }>;
 

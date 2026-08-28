@@ -669,6 +669,16 @@ p { color: var(--ink-soft); }
 .hero-copy > *:nth-child(4) { animation-delay: 240ms; }
 .hero-art { animation: fade-in 720ms var(--ease) both; animation-delay: 200ms; }
 
+/* Indic scripts often need more glyphs to express the same phrase as English.
+   Keep translated layouts compact without making body copy uncomfortably small. */
+html:not([lang="en"]) body { font-size: 15px; }
+html:not([lang="en"]) .brand { font-size: 0.96rem; }
+html:not([lang="en"]) .brand small { letter-spacing: 0.12em; }
+html:not([lang="en"]) .nav-links a { padding-inline: 10px; font-size: 0.84rem; }
+html:not([lang="en"]) .btn { font-size: 0.88rem; }
+html:not([lang="en"]) .page-header h1 { font-size: clamp(2rem, 4.3vw, 3.1rem); max-width: 22ch; }
+html:not([lang="en"]) .hero-copy h1 { font-size: clamp(2.35rem, 4.8vw, 3.7rem); max-width: 17ch; }
+
 /* Hover lifts — gated to fine pointers so touch devices don't stick a transform. */
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover, .btn-ghost:hover, .btn-dark:hover, .btn-danger:hover { transform: translateY(-2px); }
@@ -684,7 +694,7 @@ p { color: var(--ink-soft); }
   .split { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .nav-links, .nav-actions .lang, .nav-actions .call-btn { display: none; }
   .nav-toggle { display: grid; place-items: center; }
   .nav.menu-open .nav-links {
@@ -714,3 +724,7 @@ p { color: var(--ink-soft); }
   .card-hover:hover, .alert-row:hover, .service-card:hover .service-icon,
   .service-card:hover .card-arrow, .trend-item:hover { transform: none !important; }
 }
+/* The free Google translation control is driven by our own language modal. */
+#google_translate_element { position: fixed; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.goog-te-banner-frame, .skiptranslate { display: none !important; }
+body { top: 0 !important; }

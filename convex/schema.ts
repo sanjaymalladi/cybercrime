@@ -38,4 +38,10 @@ export default defineSchema({
     extractedText: v.optional(v.string()),
     createdAt: v.string(),
   }).index('by_created_at', ['createdAt']),
+
+  translations: defineTable({
+    locale: v.string(),
+    key: v.string(),
+    value: v.string(),
+  }).index('by_locale_and_key', ['locale', 'key']).index('by_locale', ['locale']),
 });

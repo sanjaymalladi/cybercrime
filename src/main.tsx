@@ -7,6 +7,7 @@ import './styles/tokens.css';
 import './styles/app.css';
 import './styles/pages.css';
 import { App } from './App';
+import { I18nProvider } from './i18n';
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
@@ -17,7 +18,7 @@ function Root() {
       <App />
     </StrictMode>
   );
-  return convexClient ? <ConvexProvider client={convexClient}>{app}</ConvexProvider> : app;
+  return convexClient ? <ConvexProvider client={convexClient}><I18nProvider>{app}</I18nProvider></ConvexProvider> : app;
 }
 
 createRoot(document.getElementById('root')!).render(<Root />);

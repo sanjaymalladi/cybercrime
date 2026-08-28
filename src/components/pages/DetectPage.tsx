@@ -17,6 +17,32 @@ function isLikelyUrl(value: string) {
 }
 
 export function DetectPage({ go }: { go: (r: RouteKey) => void }) {
+  if (!import.meta.env.VITE_CONVEX_URL) {
+    return (
+      <>
+        <PageHeader
+          eyebrow="Detect"
+          title="Check before you click"
+          description="The detector is temporarily unavailable because the production scan service is not configured."
+        />
+        <section className="section-tight">
+          <div className="container" style={{ maxWidth: 760 }}>
+            <div className="alert alert-warning" role="alert">
+              <i className="ph ph-warning" />
+              <span>Add <code>VITE_CONVEX_URL</code> to the Vercel project environment variables, then redeploy.</span>
+            </div>
+            <button className="btn btn-primary" style={{ marginTop: 'var(--sp-5)' }} onClick={() => go('report')}>
+              Report a cyber crime <i className="ph ph-arrow-right" />
+            </button>
+          </div>
+        </section>
+      </>
+    );
+  }
+  return <DetectPageWithConvex go={go} />;
+}
+
+function DetectPageWithConvex({ go }: { go: (r: RouteKey) => void }) {
   const [url, setUrl] = useState('amaz0n-verify-account.com');
   const [scan, setScan] = useState<{ verdict: string; score: number; risk: string; reasons: string[]; providers: Array<{ name: string; status: string }> } | null>(null);
   const [loading, setLoading] = useState(false);

@@ -13,6 +13,7 @@ import { LearnPage } from './components/pages/LearnPage';
 import { ResourcesPage } from './components/pages/ResourcesPage';
 import { ContactPage } from './components/pages/ContactPage';
 import { VoicePage } from './components/pages/VoicePage';
+import { useI18n } from './i18n';
 
 const services: [string, string, string, RouteKey, string?][] = [
   ['file-plus', 'Report Cyber Crime', 'File a new complaint online', 'report', undefined],
@@ -60,30 +61,30 @@ function Stat({ icon, value, label, tone = '' }: { icon: string; value: string; 
 }
 
 function Home({ go }: { go: (r: RouteKey) => void }) {
+  const { t } = useI18n();
   return (
     <>
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
             <h1>
-              Report. Detect.
-              <br /> Stay safe.
+              {t('home.hero.title')}
             </h1>
             <p className="lede">
-              One citizen-first portal to report cyber crimes, check suspicious links, track your complaint and learn to stay protected. Your safety. Our priority.
+              {t('home.hero.description')}
             </p>
             <div className="actions">
               <button className="btn btn-primary btn-lg" onClick={() => go('report')}>
-                <i className="ph ph-file-plus" /> Report a cyber crime
+                <i className="ph ph-file-plus" /> {t('home.hero.report')}
               </button>
               <button className="btn btn-ghost btn-lg" onClick={() => go('detect')}>
-                <i className="ph ph-magnifying-glass" /> Detect cyber crime
+                <i className="ph ph-magnifying-glass" /> {t('home.hero.detect')}
               </button>
             </div>
             <div className="hero-trust">
-              <span><i className="ph ph-phone-call" /> 24×7 helpline <strong>1930</strong></span>
+              <span><i className="ph ph-phone-call" /> {t('home.helpline')} <strong>1930</strong></span>
               <span className="hero-dot" />
-              <span>Official citizen portal</span>
+              <span>{t('home.official')}</span>
             </div>
           </div>
           <div className="hero-art">
@@ -187,6 +188,7 @@ function Home({ go }: { go: (r: RouteKey) => void }) {
 }
 
 export function App() {
+  const { locale } = useI18n();
   const [route, setRoute] = useState<RouteKey>(parseRoute(location.hash));
   useEffect(() => {
     const onHash = () => setRoute(parseRoute(location.hash));
@@ -194,8 +196,8 @@ export function App() {
     return () => removeEventListener('hashchange', onHash);
   }, []);
   useEffect(() => {
-    document.title = PAGE_TITLES[route];
-  }, [route]);
+    document.title = locale === 'hi' ? `साइबर अपराध भारत — ${route === 'home' ? 'शिकायत · जाँच · स्थिति' : 'नागरिक पोर्टल'}` : PAGE_TITLES[route];
+  }, [locale, route]);
   const go = (next: RouteKey) => {
     location.hash = next;
   };
