@@ -3,6 +3,8 @@ import { PageHeader } from '../ui/PageHeader';
 import { Reveal } from '../ui/Reveal';
 import type { RouteKey } from '../../types';
 import { igProfiles, type IgMedia, type LiveProfile } from '../../data/igProfiles';
+import { cachedIgProfiles } from '../../data/cachedIgProfiles';
+import { cachedMediaUrl } from '../../data/mediaCache';
 import { govImages, govImageUrl } from '../../data/govAwareness';
 
 const trending = [
@@ -171,7 +173,9 @@ const IG_BASE = 'https://www.instagram.com';
 // Route Instagram media through our same-origin proxy so the browser never
 // hotlinks fbcdn directly (which Instagram blocks). Official I4C images are
 // safe to load from their source host and must bypass the local-only proxy on Vercel.
-function proxy(u?: string) {
+function proxy(u?: string, cacheKey?: string) {
+  const cached = cachedMediaUrl(cacheKey);
+  if (cached) return cached;
   if (!u) return '';
   if (u.startsWith('https://cybercrime.gov.in/')) return u;
   return `/api/ig-media?u=${encodeURIComponent(u)}`;
@@ -277,7 +281,8 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
     };
   }, [onClose, onNav]);
 
-  const live = !!item.video || !!item.image;
+  const cached = cachedMediaUrl(item.code);
+  const live = !!cached || !!item.video || !!item.image;
   return (
     <div className="ig-lightbox" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="ig-lightbox__dialog" onClick={(e) => e.stopPropagation()}>
@@ -297,10 +302,10 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
 
         <div className={`ig-lightbox__stage ig-lightbox__stage--${data.kind}${data.meta ? ' ig-lightbox__stage--official' : ''}`}>
           {live ? (
-            item.video ? (
-              <video className="reel-media reel-video" src={proxy(item.video)} poster={proxy(item.thumb)} controls autoPlay muted playsInline onEnded={() => onNav(1)} />
+            item.video || cached ? (
+              <video className="reel-media reel-video" src={cached ?? proxy(item.video)} poster={cached ? undefined : proxy(item.thumb)} controls autoPlay muted playsInline onEnded={() => onNav(1)} />
             ) : (
-              <img className="reel-media reel-img" src={proxy(item.image)} alt={item.title} />
+              <img className="reel-media reel-img" src={cached ?? proxy(item.image)} alt={item.title} />
             )
           ) : <MediaUnavailable kind={data.kind} />}
         </div>
@@ -343,13 +348,14 @@ function MediaCard({
   onOpen: () => void;
   onEnded?: () => void;
 }) {
-  const live = !!media.video || !!media.image;
+  const cached = cachedMediaUrl(media.code);
+  const live = !!cached || !!media.video || !!media.image;
   const inner = live
     ? kind === 'reel'
       ? desktop
-        ? <video className="reel-media reel-video" src={proxy(media.video)} poster={proxy(media.thumb)} muted playsInline preload="metadata" />
+        ? <video className="reel-media reel-video" src={cached ?? proxy(media.video)} poster={cached ? undefined : proxy(media.thumb)} muted playsInline preload="metadata" />
         : <ReelVideo media={media} onEnded={onEnded} />
-      : <img className="reel-media reel-img" src={proxy(media.image)} alt={media.title} loading="lazy" />
+      : <img className="reel-media reel-img" src={cached ?? proxy(media.image)} alt={media.title} loading="lazy" />
     : <MediaUnavailable kind={kind} />;
 
   const clickable = true;
@@ -415,14 +421,14 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
   }, []);
 
   const vigilFallback = igProfiles.find((profile) => profile.handle.toLowerCase().includes('vigil'));
-  const profiles = (live ?? igProfiles).map((profile) => {
+  const profiles = (live ?? cachedIgProfiles).map((profile) => {
     if (!profile.handle.toLowerCase().includes('vigil')) return profile;
     // Keep the known fallback reels when the live proxy returns only a partial
     // timeline. The Map prevents duplicate cards when both sources overlap.
     const reels = new Map((vigilFallback?.reels ?? []).concat(profile.reels).map((reel) => [reel.code, reel]));
     return { ...profile, images: [], reels: [...reels.values()] };
   });
-  const govList: IgMedia[] = govImages.map((g, i) => ({ code: `gov${i}`, title: g.title, image: govImageUrl(g.file) }));
+  const govList: IgMedia[] = govImages.map((g, i) => ({ code: `i4c:${g.file}`, title: g.title, image: cachedMediaUrl(`i4c:${g.file}`) ?? govImageUrl(g.file) }));
   const open = (p: { name: string; handle: string }, kind: 'post' | 'reel', list: IgMedia[], idx: number) =>
     setLightbox({ name: p.name, handle: p.handle, kind, list, idx });
   const openGov = (idx: number) =>
@@ -615,7 +621,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
             {govImages.map((g, i) => (
               <figure className="gov-card" key={g.file}>
                 <button type="button" className="gov-frame" onClick={() => openGov(i)} aria-label={`Open ${g.title}`}>
-                  <img className="gov-img" src={proxy(govImageUrl(g.file))} alt={g.title} loading="lazy" />
+                  <img className="gov-img" src={cachedMediaUrl(`i4c:${g.file}`) ?? proxy(govImageUrl(g.file))} alt={g.title} loading="lazy" />
                 </button>
                 <figcaption className="gov-cap">{g.title}</figcaption>
               </figure>

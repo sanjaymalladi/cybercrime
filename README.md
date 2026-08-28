@@ -48,7 +48,7 @@ It is designed around a simple principle: help a person take the right next step
   - RBI refund OTP scams
 - Step navigation through buttons, numbered progress controls, and keyboard arrows.
 - Creator-credited Instagram reels and posts.
-- Same-origin Instagram media proxy for development media loading.
+- Production-safe awareness media cache backed by Vercel Blob, with a same-origin Instagram proxy retained for local refreshes.
 - Official I4C awareness creatives.
 
 ### Other portal areas
@@ -262,7 +262,7 @@ npm run preview
 - Complaint evidence filenames are captured, but file bytes are not stored.
 - Complaint status is created as `registered`; no citizen-facing status update mutation exists yet.
 - External detection services are optional and may be unavailable or rate-limited.
-- Instagram content depends on the upstream public profile endpoints and proxy availability.
+- The checked-in awareness manifest points to public Vercel Blob copies of the current Vigil Aunty, CyberDost, and I4C media, so production rendering does not depend on Instagram’s rate-limited endpoints. Refresh the cache through the local `/api/ig` feed and upload updated assets before publishing a new content batch.
 - The production host must support the configured Convex URL and any required server-side media proxy behavior.
 
 ## Safety and privacy
