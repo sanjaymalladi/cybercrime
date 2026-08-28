@@ -1,6 +1,7 @@
 const BLOB_BASE = 'https://vpbmetxjyw2h6sws.public.blob.vercel-storage.com/awareness/';
 
 const files: Record<string, string> = {
+  'profile:vigil': 'profile-vigil.jpg', 'profile:cyber': 'profile-cyber.jpg',
   Dci2JHytcZc: 'vigil-Dci2JHytcZc.mp4', DcixhRbNDIa: 'vigil-DcixhRbNDIa.mp4', DcgQULAqnB5: 'vigil-DcgQULAqnB5.mp4',
   DcfgCrqSvAg: 'vigil-DcfgCrqSvAg.mp4', DcdyH_WDSh3: 'vigil-DcdyH_WDSh3.mp4', Dcc5tNKBpBi: 'vigil-Dcc5tNKBpBi.mp4',
   DcYeUK1z2H4: 'vigil-DcYeUK1z2H4.mp4', DcYJoEzge0w: 'vigil-DcYJoEzge0w.mp4', DcV9uM3tZ0p: 'vigil-DcV9uM3tZ0p.mp4',
