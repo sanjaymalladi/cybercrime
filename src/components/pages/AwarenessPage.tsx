@@ -474,7 +474,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
         thumb: cachedMediaUrl(`thumb:${value.handle.includes('vigil') ? 'vigil' : 'cyber'}:${media.code}`) ?? media.thumb,
       })),
     });
-    if (!profile.handle.toLowerCase().includes('vigil')) return hydrate(profile);
+    if (!profile.handle.toLowerCase().includes('vigil')) return hydrate({ ...profile, images: [] });
     // Keep the known fallback reels when the live proxy returns only a partial
     // timeline. The Map prevents duplicate cards when both sources overlap.
     const reels = new Map((vigilFallback?.reels ?? []).concat(profile.reels).map((reel) => [reel.code, reel]));
