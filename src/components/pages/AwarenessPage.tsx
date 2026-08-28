@@ -214,6 +214,10 @@ function IgEmbed({ kind, code, title }: { kind: 'post' | 'reel'; code: string; t
   );
 }
 
+function MediaUnavailable({ kind }: { kind: 'post' | 'reel' }) {
+  return <div className="media-unavailable"><i className={`ph ${kind === 'reel' ? 'ph-play-circle' : 'ph-image-square'}`} /><span>{kind === 'reel' ? 'Video preview unavailable' : 'Image preview unavailable'}</span></div>;
+}
+
 function Avatar({ name, src, tone }: { name: string; src: string; tone: string }) {
   const [err, setErr] = useState(false);
   const ini = name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -298,9 +302,7 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
             ) : (
               <img className="reel-media reel-img" src={proxy(item.image)} alt={item.title} />
             )
-          ) : (
-            <IgEmbed kind={data.kind} code={item.code} title={item.title} />
-          )}
+          ) : <MediaUnavailable kind={data.kind} />}
         </div>
 
         <div className="ig-lightbox__meta">
@@ -348,7 +350,7 @@ function MediaCard({
         ? <video className="reel-media reel-video" src={proxy(media.video)} poster={proxy(media.thumb)} muted playsInline preload="metadata" />
         : <ReelVideo media={media} onEnded={onEnded} />
       : <img className="reel-media reel-img" src={proxy(media.image)} alt={media.title} loading="lazy" />
-    : <IgEmbed kind={kind} code={media.code} title={media.title} />;
+    : <MediaUnavailable kind={kind} />;
 
   const clickable = true;
 
