@@ -394,6 +394,42 @@ function Caption({ text }: { text: string }) {
   );
 }
 
+function XPostEmbed() {
+  const host = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const render = () => {
+      const twitter = (window as Window & { twttr?: { widgets?: { load: (element?: HTMLElement) => void } } }).twttr;
+      twitter?.widgets?.load(host.current ?? undefined);
+    };
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://platform.x.com/widgets.js"]');
+    if (existing) {
+      render();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://platform.x.com/widgets.js';
+    script.async = true;
+    script.charset = 'utf-8';
+    script.onload = render;
+    document.body.appendChild(script);
+  }, []);
+
+  return (
+    <div ref={host} className="x-post-embed">
+      <blockquote className="twitter-tweet" data-media-max-width="560">
+        <p lang="en" dir="ltr">
+          Operation 1930 - Trailer 1 <a href="https://x.com/hashtag/Maharashtra?src=hash&amp;ref_src=twsrc%5Etfw">#Maharashtra</a>{' '}
+          <a href="https://x.com/hashtag/DevendraFadnavis?src=hash&amp;ref_src=twsrc%5Etfw">#DevendraFadnavis</a>{' '}
+          <a href="https://x.com/hashtag/CyberAwareness?src=hash&amp;ref_src=twsrc%5Etfw">#CyberAwareness</a>{' '}
+          <a href="https://x.com/hashtag/Operation1930?src=hash&amp;ref_src=twsrc%5Etfw">#Operation1930</a>{' '}
+          <a href="https://t.co/elfOwFJ9FX">pic.twitter.com/elfOwFJ9FX</a>
+        </p>
+        &mdash; CMO Maharashtra (@CMOMaharashtra) <a href="https://x.com/CMOMaharashtra/status/2092600956127170954?ref_src=twsrc%5Etfw">August 26, 2026</a>
+      </blockquote>
+    </div>
+  );
+}
+
 function scrollNext(profileIndex: number, idx: number) {
   const feed = document.getElementById(`reelfeed-${profileIndex}`);
   // SAFETY: feed children are always HTMLElements (rendered <figure> cards).
@@ -586,7 +622,16 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
             <p className="lede">Learn how India’s cyber fraud helpline helps citizens respond quickly to financial scams.</p>
           </div>
 
-          <div className="awareness-video-card">
+          <div className="awareness-video-stack">
+            <div className="awareness-video-card awareness-x-card">
+              <div className="awareness-video-label">
+                <i className="ph ph-x-logo" />
+                <span>Operation 1930 trailer</span>
+              </div>
+              <XPostEmbed />
+            </div>
+
+            <div className="awareness-video-card">
             <div className="awareness-video-frame">
               <iframe
                 src="https://www.youtube-nocookie.com/embed/i9BI4ePKHOg"
@@ -604,6 +649,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
               <a href="https://www.youtube.com/watch?v=i9BI4ePKHOg" target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
                 Watch on YouTube <i className="ph ph-arrow-up-right" />
               </a>
+            </div>
             </div>
           </div>
 
