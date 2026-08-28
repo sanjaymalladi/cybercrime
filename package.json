@@ -2,6 +2,7 @@
   "name": "the-sarkari-web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Citizen-first cyber crime reporting, detection, tracking, and awareness portal for India.",
   "scripts": {
     "dev": "vite",
