@@ -417,14 +417,16 @@ function XPostEmbed() {
   return (
     <div ref={host} className="x-post-embed">
       <blockquote className="twitter-tweet" data-media-max-width="560">
-        <p lang="en" dir="ltr">
-          Operation 1930 - Trailer 1 <a href="https://x.com/hashtag/Maharashtra?src=hash&amp;ref_src=twsrc%5Etfw">#Maharashtra</a>{' '}
-          <a href="https://x.com/hashtag/DevendraFadnavis?src=hash&amp;ref_src=twsrc%5Etfw">#DevendraFadnavis</a>{' '}
+        <p lang="fr" dir="ltr">
+          Operation 1930 Maharashtra Cyber Curtain Raiser | Tailer <a href="https://x.com/hashtag/Operation1930?src=hash&amp;ref_src=twsrc%5Etfw">#Operation1930</a>{' '}
+          <a href="https://x.com/hashtag/MaharashtraCyber?src=hash&amp;ref_src=twsrc%5Etfw">#MaharashtraCyber</a>{' '}
           <a href="https://x.com/hashtag/CyberAwareness?src=hash&amp;ref_src=twsrc%5Etfw">#CyberAwareness</a>{' '}
-          <a href="https://x.com/hashtag/Operation1930?src=hash&amp;ref_src=twsrc%5Etfw">#Operation1930</a>{' '}
-          <a href="https://t.co/elfOwFJ9FX">pic.twitter.com/elfOwFJ9FX</a>
+          <a href="https://x.com/hashtag/DigitalArrest?src=hash&amp;ref_src=twsrc%5Etfw">#DigitalArrest</a>{' '}
+          <a href="https://x.com/hashtag/Dial1930?src=hash&amp;ref_src=twsrc%5Etfw">#Dial1930</a>{' '}
+          <a href="https://x.com/hashtag/CyberSafety?src=hash&amp;ref_src=twsrc%5Etfw">#CyberSafety</a>{' '}
+          <a href="https://t.co/d9uBKLxAl0">pic.twitter.com/d9uBKLxAl0</a>
         </p>
-        &mdash; CMO Maharashtra (@CMOMaharashtra) <a href="https://x.com/CMOMaharashtra/status/2092600956127170954?ref_src=twsrc%5Etfw">August 26, 2026</a>
+        &mdash; Maharashtra Cyber (@MahaCyber1) <a href="https://x.com/MahaCyber1/status/2092668889608114492?ref_src=twsrc%5Etfw">August 26, 2026</a>
       </blockquote>
     </div>
   );
