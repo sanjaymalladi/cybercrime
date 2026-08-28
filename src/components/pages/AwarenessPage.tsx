@@ -350,12 +350,15 @@ function MediaCard({
 }) {
   const cached = cachedMediaUrl(media.code);
   const live = !!cached || !!media.video || !!media.image;
+  const imageSrc = cached ?? proxy(media.image);
   const inner = live
     ? kind === 'reel'
       ? desktop
         ? <video className="reel-media reel-video" src={cached ?? proxy(media.video)} poster={cached ? undefined : proxy(media.thumb)} muted playsInline preload="metadata" />
         : <ReelVideo media={media} onEnded={onEnded} />
-      : <img className="reel-media reel-img" src={cached ?? proxy(media.image)} alt={media.title} loading="lazy" />
+      : <img className="reel-media reel-img" src={imageSrc} alt={media.title} loading="lazy" onError={(event) => {
+        if (cached && media.image && event.currentTarget.src !== media.image) event.currentTarget.src = media.image;
+      }} />
     : <MediaUnavailable kind={kind} />;
 
   const clickable = true;
@@ -460,11 +463,16 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
 
   const vigilFallback = igProfiles.find((profile) => profile.handle.toLowerCase().includes('vigil'));
   const profiles = (live ?? cachedIgProfiles).map((profile) => {
-    if (!profile.handle.toLowerCase().includes('vigil')) return profile;
+    const hydrate = (value: typeof profile) => ({
+      ...value,
+      images: value.images.map((media) => ({ ...media, image: cachedMediaUrl(media.code) ?? media.image })),
+      reels: value.reels.map((media) => ({ ...media, video: cachedMediaUrl(media.code) ?? media.video })),
+    });
+    if (!profile.handle.toLowerCase().includes('vigil')) return hydrate(profile);
     // Keep the known fallback reels when the live proxy returns only a partial
     // timeline. The Map prevents duplicate cards when both sources overlap.
     const reels = new Map((vigilFallback?.reels ?? []).concat(profile.reels).map((reel) => [reel.code, reel]));
-    return { ...profile, images: [], reels: [...reels.values()] };
+    return hydrate({ ...profile, images: [], reels: [...reels.values()] });
   });
   const govList: IgMedia[] = govImages.map((g, i) => ({ code: `i4c:${g.file}`, title: g.title, image: cachedMediaUrl(`i4c:${g.file}`) ?? govImageUrl(g.file) }));
   const open = (p: { name: string; handle: string }, kind: 'post' | 'reel', list: IgMedia[], idx: number) =>
