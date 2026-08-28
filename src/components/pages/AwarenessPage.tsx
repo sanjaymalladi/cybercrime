@@ -16,7 +16,7 @@ const trending = [
 type ScamStep = { label: string; title: string; text: string; icon: string };
 type ScamCase = { title: string; subtitle: string; brand: string; amount: string; steps: ScamStep[] };
 
-const scamCases: Record<number, ScamCase> = {
+const scamCases = {
   1: {
     title: 'Fake UPI Collect request', subtitle: 'Follow the trail. The red flag is easy to miss.', brand: 'UPI', amount: '₹2,499', steps: [
   {
@@ -86,7 +86,7 @@ const scamCases: Record<number, ScamCase> = {
       { label: 'Your move', title: 'Refuse, hang up, and report', text: 'Do not share the OTP. Contact your bank through its official channel and call 1930 quickly if you lose money.', icon: 'ph-shield-check' },
     ],
   },
-};
+} satisfies Record<number, ScamCase>;
 
 function ScamLearningBoard({ scamCase, onClose }: { scamCase: ScamCase; onClose: () => void }) {
   const [step, setStep] = useState(0);
@@ -99,10 +99,12 @@ function ScamLearningBoard({ scamCase, onClose }: { scamCase: ScamCase; onClose:
       if (event.key === 'ArrowLeft') setStep((value) => Math.max(value - 1, 0));
     };
     const previousOverflow = document.body.style.overflow;
+    document.body.classList.add('lightbox-open');
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove('lightbox-open');
       window.removeEventListener('keydown', onKey);
     };
   }, [onClose, scamCase.steps.length]);
@@ -444,7 +446,10 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
               </span>
               <div className="trending">
                 {trending.map((t) => (
-                  <button type="button" key={t.rank} className="trend-item trend-item--interactive" onClick={() => setSelectedScam(scamCases[t.rank])} aria-label={`Learn how ${t.title} works`}>
+                  <button type="button" key={t.rank} className="trend-item trend-item--interactive" onClick={() => {
+                    // SAFETY: trending ranks are the five literal keys defined in scamCases.
+                    setSelectedScam(scamCases[t.rank as keyof typeof scamCases]);
+                  }} aria-label={`Learn how ${t.title} works`}>
                     <span className="trend-rank">{t.rank}</span>
                     <div className="trend-body">
                       <b>{t.title}</b>

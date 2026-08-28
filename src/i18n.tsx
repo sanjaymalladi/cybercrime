@@ -4,8 +4,22 @@ import { api } from '../convex/_generated/api';
 
 export type Locale = 'en' | 'hi' | 'bn' | 'ta' | 'te' | 'kn' | 'ml' | 'mr' | 'gu' | 'pa' | 'or' | 'as' | 'ur' | 'ne' | 'kok' | 'ks' | 'sd' | 'sa' | 'sat' | 'mni' | 'brx' | 'mai' | 'doi';
 const locales = new Set<Locale>(['en', 'hi', 'bn', 'ta', 'te', 'kn', 'ml', 'mr', 'gu', 'pa', 'or', 'as', 'ur', 'ne', 'kok', 'ks', 'sd', 'sa', 'sat', 'mni', 'brx', 'mai', 'doi']);
+type TranslationMap = Record<string, string>;
 
-const fallback: Record<string, Record<string, string>> = {
+function lookup(map: TranslationMap, key: string) {
+  return map[key];
+}
+
+function fallbackFor(locale: Locale): TranslationMap {
+  return locale === 'hi' ? fallback.hi : fallback.en;
+}
+
+function isLocale(value: string): value is Locale {
+  // SAFETY: locales contains the complete Locale union.
+  return locales.has(value as Locale);
+}
+
+const fallback = {
   en: {
     'nav.report': 'Report', 'nav.detect': 'Detect', 'nav.track': 'Track', 'nav.awareness': 'Awareness', 'nav.contact': 'Contact', 'nav.call': 'Call 1930',
     'brand.name': 'Cyber Crime India', 'brand.tagline': 'Report · Detect · Track',
@@ -16,10 +30,10 @@ const fallback: Record<string, Record<string, string>> = {
     'brand.name': 'साइबर अपराध भारत', 'brand.tagline': 'शिकायत · जाँच · स्थिति',
     'home.hero.title': 'शिकायत करें। जाँचें। सुरक्षित रहें।', 'home.hero.description': 'साइबर अपराध की शिकायत दर्ज करने, संदिग्ध लिंक जाँचने, शिकायत की स्थिति देखने और सुरक्षित रहने के लिए नागरिकों का एक पोर्टल। आपकी सुरक्षा हमारी प्राथमिकता है।', 'home.hero.report': 'साइबर अपराध की शिकायत करें', 'home.hero.detect': 'साइबर अपराध जाँचें', 'home.helpline': '24×7 हेल्पलाइन', 'home.official': 'आधिकारिक नागरिक पोर्टल',
   },
-};
+} satisfies Record<string, Record<string, string>>;
 
 type I18nValue = { locale: Locale; setLocale: (locale: Locale) => void; t: (key: string) => string };
-const I18nContext = createContext<I18nValue>({ locale: 'en', setLocale: () => {}, t: (key) => fallback.en[key] ?? key });
+const I18nContext = createContext<I18nValue>({ locale: 'en', setLocale: () => {}, t: (key) => lookup(fallback.en, key) ?? key });
 
 function applyGoogleLocale(locale: Locale) {
   const select = document.querySelector<HTMLSelectElement>('.goog-te-combo');
@@ -32,7 +46,7 @@ function applyGoogleLocale(locale: Locale) {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => { const saved = localStorage.getItem('preferred-locale') as Locale | null; return saved && locales.has(saved) ? saved : 'en'; });
+  const [locale, setLocaleState] = useState<Locale>(() => { const saved = localStorage.getItem('preferred-locale'); return saved && isLocale(saved) ? saved : 'en'; });
   const rows = useQuery(api.translations.list, { locale });
   const setLocale = (next: Locale) => {
     setLocaleState(next);
@@ -41,12 +55,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       window.setTimeout(() => applyGoogleLocale(next), 500);
     }
   };
-  const translations = useMemo(() => ({ ...fallback[locale], ...(rows ?? []).reduce<Record<string, string>>((all, row) => { all[row.key] = row.value; return all; }, {}) }), [locale, rows]);
+  const translations = useMemo(() => ({ ...fallbackFor(locale), ...(rows ?? []).reduce<Record<string, string>>((all, row) => { all[row.key] = row.value; return all; }, {}) }), [locale, rows]);
   useEffect(() => {
     document.documentElement.lang = locale;
     if (locale !== 'en') window.setTimeout(() => applyGoogleLocale(locale), 250);
   }, [locale]);
-  return <I18nContext.Provider value={{ locale, setLocale, t: (key) => translations[key] ?? fallback.en[key] ?? key }}>{children}</I18nContext.Provider>;
+  return <I18nContext.Provider value={{ locale, setLocale, t: (key) => lookup(translations, key) ?? lookup(fallback.en, key) ?? key }}>{children}</I18nContext.Provider>;
 }
 
 export const useI18n = () => useContext(I18nContext);

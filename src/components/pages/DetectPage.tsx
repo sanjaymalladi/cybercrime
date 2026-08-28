@@ -5,13 +5,6 @@ import { PageHeader } from '../ui/PageHeader';
 import { Reveal } from '../ui/Reveal';
 import type { RouteKey } from '../../types';
 
-const sampleFindings = [
-  { ok: false, title: 'Domain registered 3 days ago', text: 'Newly minted domains are a common phishing signal.' },
-  { ok: false, title: 'Hosted on a known-abuse ASN', text: 'IP linked to previous scam reports in I4C repository.' },
-  { ok: false, title: 'Brand impersonation detected', text: 'Uses Amazon branding without an official domain.' },
-  { ok: true, title: 'No malware payload on static scan', text: 'VirusTotal: 0/94 engines flagged the page content.' },
-];
-
 function isLikelyUrl(value: string) {
   return /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i.test(value.trim());
 }

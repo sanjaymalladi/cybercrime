@@ -9,6 +9,7 @@ import './styles/pages.css';
 import { App } from './App';
 import { I18nProvider } from './i18n';
 
+// SAFETY: Vite exposes environment variables as strings or undefined at build time.
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
 

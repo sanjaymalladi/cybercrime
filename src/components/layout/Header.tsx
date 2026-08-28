@@ -3,6 +3,14 @@ import type { RouteKey } from '../../types';
 import { LanguageModal } from '../report/ComplaintFlow';
 import { useI18n, type Locale } from '../../i18n';
 
+const localeCodes = new Set<Locale>(['en', 'hi', 'bn', 'ta', 'te', 'kn', 'ml', 'mr', 'gu', 'pa', 'or', 'as', 'ur', 'ne', 'kok', 'ks', 'sd', 'sa', 'sat', 'mni', 'brx', 'mai', 'doi']);
+
+function localeFromCode(code: string): Locale {
+  if (code === 'unknown') return 'en';
+  // SAFETY: localeCodes contains only valid Locale values, so membership proves the union type.
+  return localeCodes.has(code as Locale) ? (code as Locale) : 'en';
+}
+
 const links: { route: RouteKey; label: string }[] = [
   { route: 'report', label: 'Report' },
   { route: 'detect', label: 'Detect' },
@@ -61,7 +69,7 @@ export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (ro
             >
               {locale === 'hi' ? 'हिन्दी' : locale === 'en' ? 'English' : locale.toUpperCase()} <i className="ph ph-caret-down" aria-hidden="true" />
             </button>
-            {langOpen && <LanguageModal value={`${locale}-IN`} showAutoDetect={false} onChange={(next) => { const code = next.split('-')[0]; const nextLocale: Locale = code === 'unknown' ? 'en' : code as Locale; setLocale(nextLocale); setLangOpen(false); }} onClose={() => setLangOpen(false)} />}
+            {langOpen && <LanguageModal value={`${locale}-IN`} showAutoDetect={false} onChange={(next) => { setLocale(localeFromCode(next.split('-')[0])); setLangOpen(false); }} onClose={() => setLangOpen(false)} />}
           </div>
 
           <a className="btn btn-danger btn-sm call-btn" href="tel:1930">

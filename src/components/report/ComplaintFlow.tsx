@@ -434,14 +434,14 @@ function VoicePane({ value, onChange, onSubmit }: { value: string; onChange: (va
         {languageOpen && <LanguageModal value={lang} onChange={(next) => { setLang(next); setLanguageOpen(false); }} onClose={() => setLanguageOpen(false)} />}
       </div>
       {/* Language options are kept in the modal below. */}
-      {false && <label className="voice-language">
+      {/* Legacy select retained for reference; LanguageModal is the active selector.
         <span className="sr-only">Voice language</span>
         <select className="input" value={lang} onChange={(event) => setLang(event.target.value)} disabled={rec} aria-label="Voice language">
         <option value="unknown">Auto-detect any language</option>
         {[['en-IN','English'],['hi-IN','हिन्दी'],['bn-IN','বাংলা'],['ta-IN','தமிழ்'],['te-IN','తెలుగు'],['kn-IN','ಕನ್ನಡ'],['ml-IN','മലയാളം'],['mr-IN','मराठी'],['gu-IN','ગુજરાતી'],['pa-IN','ਪੰਜਾਬੀ'],['od-IN','ଓଡ଼ିଆ'],['as-IN','অসমীয়া'],['ur-IN','اردو'],['ne-IN','नेपाली'],['kok-IN','कोंकणी'],['ks-IN','कश्मीरी'],['sd-IN','सिन্ধी'],['sa-IN','संस्कृत'],['sat-IN','संथाली'],['mni-IN','মণিপুরী'],['brx-IN','बोड़ो'],['mai-IN','मैथिली'],['doi-IN','डोगरी']].map(([code, label]) => <option key={code} value={code}>{label}</option>)}
         </select>
         <i className="ph ph-caret-down" aria-hidden="true" />
-      </label>}
+      */}
       {rec && <h3>Listening… {String(Math.floor(secs / 60)).padStart(2, '0')}:{String(secs % 60).padStart(2, '0')}</h3>}
       <button type="button" className={`btn ${rec ? 'btn-danger' : 'btn-primary'}`} onClick={rec ? stop : start}>
         <i className={`ph ${rec ? 'ph-stop' : 'ph-microphone'}`} /> {rec ? 'Stop recording' : 'Start recording'}

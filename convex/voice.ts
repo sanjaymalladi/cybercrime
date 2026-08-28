@@ -9,7 +9,8 @@ export const transcribe = action({
   handler: async (_ctx, args) => {
     const key = process.env.SARVAM_API_KEY;
     if (!key) throw new Error('SARVAM_API_KEY is not configured');
-    if (!(languages as readonly string[]).includes(args.languageCode)) throw new Error('Unsupported speech language');
+    // SAFETY: languages is a readonly tuple of every language code accepted by the API.
+    if (!languages.includes(args.languageCode as (typeof languages)[number])) throw new Error('Unsupported speech language');
     const bytes = Uint8Array.from(atob(args.audioBase64), (char) => char.charCodeAt(0));
     const form = new FormData();
     form.append('file', new Blob([bytes], { type: args.mimeType }), 'complaint.webm');
@@ -22,6 +23,7 @@ export const transcribe = action({
       const detail = await response.text();
       throw new Error(`Sarvam transcription failed (${response.status}): ${detail.slice(0, 240)}`);
     }
+    // SAFETY: Sarvam's documented response fields are consumed with nullish fallbacks below.
     const body = (await response.json()) as { transcript?: string; language_code?: string };
     return { transcript: body.transcript ?? '', languageCode: body.language_code ?? args.languageCode };
   },

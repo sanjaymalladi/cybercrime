@@ -10,7 +10,7 @@ import react from '@vitejs/plugin-react';
 // signed fbcdn links stay valid for the session.
 function instagramProxy() {
   const HANDLES = ['vforvigilaunty', 'cyberdosti4c'];
-  const HEADERS: Record<string, string> = {
+  const HEADERS = {
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
     'X-IG-App-ID': '936619743392459',
@@ -23,12 +23,13 @@ function instagramProxy() {
     Origin: 'https://www.instagram.com',
     Referer: 'https://www.instagram.com/',
     'X-Requested-With': 'XMLHttpRequest',
-  };
+  } satisfies Record<string, string>;
 
   async function getProfile(username: string) {
     const url = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`;
     const res = await fetch(url, { headers: HEADERS });
     if (!res.ok) throw new Error(`ig ${res.status} for ${username}`);
+    // SAFETY: Instagram's documented profile response is accessed through guarded optional fields below.
     const j = (await res.json()) as any;
     const u = (j.graphql || j.data)?.user;
     if (!u) throw new Error('no user in response');
@@ -68,6 +69,7 @@ function instagramProxy() {
   const TTL = 10 * 60 * 1000;
 
   async function handler(req: any, res: any, next: any) {
+    // SAFETY: Vite's Connect request always supplies a string URL for middleware handlers.
     const url = req.url as string;
     if (!url || url.split('?')[0] !== '/api/ig') return next();
     try {
@@ -97,6 +99,7 @@ function instagramProxy() {
   // talks to localhost, so CSP / hotlink rules no longer apply.
   const MEDIA_HOST_RE = /(^|\.)(instagram\.com|fbcdn\.net|cdninstagram\.com|cybercrime\.gov\.in)$/;
   async function mediaHandler(req: any, res: any, next: any) {
+    // SAFETY: Vite's Connect request always supplies a string URL for middleware handlers.
     const url = req.url as string;
     if (!url || !url.startsWith('/api/ig-media')) return next();
     let target: URL;
@@ -134,6 +137,7 @@ function instagramProxy() {
       pass('accept-ranges');
       res.setHeader('Cache-Control', 'public, max-age=3600');
       if (upstream.body) {
+        // SAFETY: the Fetch body is a Web ReadableStream, which Node's adapter accepts here.
         Readable.fromWeb(upstream.body as any).pipe(res);
       } else {
         res.end();

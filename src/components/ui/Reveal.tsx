@@ -23,10 +23,12 @@ export function Reveal({ children, delay = 0, className = '', style }: { childre
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  // SAFETY: CSS custom property keys are strings; the resulting object is a valid CSSProperties shape.
-  const revealStyle = { ...style, ...(delay ? { ['--reveal-delay' as string]: `${delay}ms` } : {}) } as CSSProperties;
+  const revealStyle = { ...style };
+  if (delay) Object.assign(revealStyle, { '--reveal-delay': `${delay}ms` });
+  // SAFETY: CSS custom property keys are valid React CSSProperties at runtime.
+  const styleWithReveal = revealStyle as CSSProperties;
   return (
-    <div ref={ref} className={`reveal ${className}`} style={revealStyle}>
+    <div ref={ref} className={`reveal ${className}`} style={styleWithReveal}>
       {children}
     </div>
   );

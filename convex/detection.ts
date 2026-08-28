@@ -25,18 +25,29 @@ function heuristic(input: string) {
   return { verdict: score >= 60 ? 'suspicious' : 'no_known_threat', score, risk: score >= 60 ? 'high' : score >= 25 ? 'medium' : 'low', reasons };
 }
 
+type ParsedValue = string | number | boolean | null;
+type ScanResultCore = { verdict: string; score: number; risk: string; reasons: string[]; extractedText?: string; resultUrl?: string };
+
+function isStringValue(value: ParsedValue | undefined): value is string {
+  return Object.prototype.toString.call(value) === '[object String]';
+}
+
 function parseModelResult(content: string) {
   const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-  const parsed = JSON.parse(cleaned) as { extractedText?: unknown; verdict?: unknown; score?: unknown; risk?: unknown; reasons?: unknown };
+  // SAFETY: OpenRouter is requested to return this exact JSON shape; all values are validated before use.
+  const parsed = JSON.parse(cleaned) as { extractedText?: ParsedValue; verdict?: ParsedValue; score?: ParsedValue; risk?: ParsedValue; reasons?: ParsedValue[] };
   const score = Math.max(0, Math.min(100, Number(parsed.score) || 0));
-  const reasons = Array.isArray(parsed.reasons) ? parsed.reasons.filter((reason): reason is string => typeof reason === 'string').slice(0, 8) : [];
-  return {
-    verdict: typeof parsed.verdict === 'string' ? parsed.verdict : score >= 60 ? 'suspicious' : 'no_known_threat',
+  const reasons = Array.isArray(parsed.reasons) ? parsed.reasons.filter(isStringValue).slice(0, 8) : [];
+  const modelResult: ScanResultCore = {
+    verdict: isStringValue(parsed.verdict) ? parsed.verdict : score >= 60 ? 'suspicious' : 'no_known_threat',
     score,
     risk: parsed.risk === 'high' || parsed.risk === 'medium' || parsed.risk === 'low' ? parsed.risk : score >= 60 ? 'high' : score >= 25 ? 'medium' : 'low',
     reasons: reasons.length ? reasons : ['The model did not identify a specific scam indicator.'],
-    ...(typeof parsed.extractedText === 'string' && parsed.extractedText.trim() ? { extractedText: parsed.extractedText.trim().slice(0, 5000) } : {}),
   };
+  if (isStringValue(parsed.extractedText) && parsed.extractedText.trim()) {
+    modelResult.extractedText = parsed.extractedText.trim().slice(0, 5000);
+  }
+  return modelResult;
 }
 
 export const saveScan = internalMutation({
@@ -59,7 +70,7 @@ export const scan = action({
     const localImageText = args.mimeType === 'image/demo-scam'
       ? 'State Bank of India suspicious activity account suspended within 24 hours verify immediately secure-sbi-login.com'
       : 'screenshot image uploaded for OCR review';
-    let result = args.source === 'image'
+    let result: ScanResultCore = args.source === 'image'
       ? (args.mimeType === 'image/demo-scam' ? heuristic(localImageText) : { verdict: 'needs_review', score: 20, risk: 'medium', reasons: ['Screenshot is awaiting OCR analysis; do not treat an unverified image as safe.'] })
       : heuristic(args.input);
     const providers: Array<{ name: string; status: 'checked' | 'clear' | 'unavailable' | 'not_configured' | 'submitted' }> = [
@@ -87,6 +98,7 @@ export const scan = action({
           }),
         });
         if (!response.ok) throw new Error(`OpenRouter returned ${response.status}`);
+        // SAFETY: OpenRouter's response contract is checked by the content presence guard below.
         const body = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
         const content = body.choices?.[0]?.message?.content;
         if (!content) throw new Error('OpenRouter returned no analysis');
@@ -108,6 +120,7 @@ export const scan = action({
           body: JSON.stringify({ input, source: args.source === 'image' ? 'image' : 'text' }),
         });
         if (response.ok) {
+          // SAFETY: ScamCheck's documented response fields are consumed with nullish fallbacks below.
           const remote = (await response.json()) as { verdict?: string; score?: number; risk?: string; reasons?: string[]; result_url?: string };
           result = { verdict: remote.verdict ?? result.verdict, score: remote.score ?? result.score, risk: remote.risk ?? result.risk, reasons: remote.reasons?.length ? remote.reasons : result.reasons };
           providers[1].status = 'checked';
@@ -125,6 +138,7 @@ export const scan = action({
           signal: AbortSignal.timeout(12000),
           body: JSON.stringify({ client: { clientId: 'cybercrime-india', clientVersion: '1.0.0' }, threatInfo: { threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE', 'POTENTIALLY_HARMFUL_APPLICATION'], platformTypes: ['ANY_PLATFORM'], threatEntryTypes: ['URL'], threatEntries: [{ url: args.input }] } }),
         });
+        // SAFETY: Safe Browsing responses are read only through optional fields.
         const matches = (await response.json()) as { matches?: Array<{ threatType?: string }> };
         if (matches.matches?.length) {
           result = { verdict: 'malicious_match', score: Math.max(result.score, 98), risk: 'high', reasons: [...result.reasons, `Google Safe Browsing matched ${matches.matches.map((m) => m.threatType).join(', ')}.`] };
@@ -140,6 +154,7 @@ export const scan = action({
         const urlId = btoa(args.input).replace(/=+$/, '');
         const response = await fetch(`https://www.virustotal.com/api/v3/urls/${urlId}`, { headers: { 'x-apikey': process.env.VIRUSTOTAL_API_KEY }, signal: AbortSignal.timeout(12000) });
         if (response.ok) {
+          // SAFETY: VirusTotal responses are read only through optional fields.
           const body = (await response.json()) as { data?: { attributes?: { last_analysis_stats?: { malicious?: number; suspicious?: number } } } };
           const stats = body.data?.attributes?.last_analysis_stats;
           const flagged = (stats?.malicious ?? 0) + (stats?.suspicious ?? 0);
@@ -164,7 +179,10 @@ export const scan = action({
       }
     }
 
-    await ctx.runMutation(internal.detection.saveScan, { source: args.source, inputPreview: args.source === 'image' ? '[uploaded image]' : args.input.slice(0, 180), result: { ...result, ...(extractedText ? { extractedText } : {}), ...(resultUrl ? { resultUrl } : {}) } });
-    return { ...result, ...(extractedText ? { extractedText } : {}), providers, ...(resultUrl ? { resultUrl } : {}) };
+    const persisted = { ...result };
+    if (extractedText) persisted.extractedText = extractedText;
+    if (resultUrl) persisted.resultUrl = resultUrl;
+    await ctx.runMutation(internal.detection.saveScan, { source: args.source, inputPreview: args.source === 'image' ? '[uploaded image]' : args.input.slice(0, 180), result: persisted });
+    return { ...persisted, providers };
   },
 });

@@ -32,7 +32,7 @@ const homeAlerts = [
 ];
 
 const ROUTES: RouteKey[] = ['home', 'report', 'voice', 'detect', 'track', 'learn', 'awareness', 'resources', 'contact'];
-const PAGE_TITLES: Record<RouteKey, string> = {
+const PAGE_TITLES = {
   home: 'Cyber Crime India — Report. Detect. Track.',
   report: 'Report a Cyber Crime — Cyber Crime India',
   voice: 'Voice Complaint — Cyber Crime India',
@@ -42,7 +42,7 @@ const PAGE_TITLES: Record<RouteKey, string> = {
   awareness: 'Cyber Crime Awareness — Cyber Crime India',
   resources: 'Cyber Safety Resources — Cyber Crime India',
   contact: 'Contact Support — Cyber Crime India',
-};
+} satisfies Record<RouteKey, string>;
 
 function parseRoute(hash: string): RouteKey {
   const r = hash.replace(/^#/, '');
