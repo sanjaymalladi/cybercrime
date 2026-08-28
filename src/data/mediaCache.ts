@@ -17,6 +17,10 @@ const files: Record<string, string> = {
 };
 
 export function cachedMediaUrl(key?: string) {
+  if (key?.startsWith('thumb:')) {
+    const [, profile, code] = key.split(':');
+    return profile && code ? `${BLOB_BASE}${profile}-thumb-${code}.jpg` : undefined;
+  }
   const file = key ? files[key] : undefined;
   return file ? `${BLOB_BASE}${file}` : undefined;
 }

@@ -177,6 +177,7 @@ function proxy(u?: string, cacheKey?: string) {
   const cached = cachedMediaUrl(cacheKey);
   if (cached) return cached;
   if (!u) return '';
+  if (u.startsWith('https://vpbmetxjyw2h6sws.public.blob.vercel-storage.com/')) return u;
   if (u.startsWith('https://cybercrime.gov.in/')) return u;
   return `/api/ig-media?u=${encodeURIComponent(u)}`;
 }
@@ -251,7 +252,7 @@ function ReelVideo({ media, onEnded }: { media: IgMedia; onEnded?: () => void })
       ref={ref}
       className="reel-media reel-video"
       src={proxy(media.video)}
-      poster={cachedMediaUrl(media.code) ? undefined : proxy(media.thumb)}
+      poster={proxy(media.thumb)}
       muted
       playsInline
       preload="metadata"
@@ -303,7 +304,7 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
         <div className={`ig-lightbox__stage ig-lightbox__stage--${data.kind}${data.meta ? ' ig-lightbox__stage--official' : ''}`}>
           {live ? (
             item.video || cached ? (
-              <video className="reel-media reel-video" src={cached ?? proxy(item.video)} poster={cached ? undefined : proxy(item.thumb)} controls autoPlay muted playsInline onEnded={() => onNav(1)} />
+              <video className="reel-media reel-video" src={cached ?? proxy(item.video)} poster={proxy(item.thumb)} controls autoPlay muted playsInline onEnded={() => onNav(1)} />
             ) : (
               <img className="reel-media reel-img" src={cached ?? proxy(item.image)} alt={item.title} />
             )
@@ -354,7 +355,7 @@ function MediaCard({
   const inner = live
     ? kind === 'reel'
       ? desktop
-        ? <video className="reel-media reel-video" src={cached ?? proxy(media.video)} poster={cached ? undefined : proxy(media.thumb)} muted playsInline preload="metadata" />
+        ? <video className="reel-media reel-video" src={cached ?? proxy(media.video)} poster={proxy(media.thumb)} muted playsInline preload="metadata" />
         : <ReelVideo media={media} onEnded={onEnded} />
       : <img className="reel-media reel-img" src={imageSrc} alt={media.title} loading="lazy" onError={(event) => {
         if (cached && media.image && event.currentTarget.src !== media.image) event.currentTarget.src = media.image;
@@ -467,7 +468,11 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
     const hydrate = (value: typeof profile) => ({
       ...value,
       images: value.images.map((media) => ({ ...media, image: cachedMediaUrl(media.code) ?? media.image })),
-      reels: value.reels.map((media) => ({ ...media, video: cachedMediaUrl(media.code) ?? media.video })),
+      reels: value.reels.map((media) => ({
+        ...media,
+        video: cachedMediaUrl(media.code) ?? media.video,
+        thumb: cachedMediaUrl(`thumb:${value.handle.includes('vigil') ? 'vigil' : 'cyber'}:${media.code}`) ?? media.thumb,
+      })),
     });
     if (!profile.handle.toLowerCase().includes('vigil')) return hydrate(profile);
     // Keep the known fallback reels when the live proxy returns only a partial
