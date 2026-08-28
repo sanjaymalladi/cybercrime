@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Select } from '../ui/Select';
 import { DatePicker } from '../ui/DatePicker';
 import { useAction } from 'convex/react';
@@ -412,14 +413,14 @@ function VoicePane({ value, onChange, onSubmit }: { value: string; onChange: (va
 
 const voiceLanguages = [['unknown', 'Auto-detect any language'], ['en-IN', 'English'], ['hi-IN', 'हिन्दी'], ['bn-IN', 'বাংলা'], ['ta-IN', 'தமிழ்'], ['te-IN', 'తెలుగు'], ['kn-IN', 'ಕನ್ನಡ'], ['ml-IN', 'മലയാളം'], ['mr-IN', 'मराठी'], ['gu-IN', 'ગુજરાતી'], ['pa-IN', 'ਪੰਜਾਬੀ'], ['od-IN', 'ଓଡ଼ିଆ'], ['as-IN', 'অসমীয়া'], ['ur-IN', 'اردو'], ['ne-IN', 'नेपाली'], ['kok-IN', 'कोंकणी'], ['ks-IN', 'कश्मೀरी'], ['sd-IN', 'सиндھی'], ['sa-IN', 'संस्कृत'], ['sat-IN', 'संथाली'], ['mni-IN', 'মণিপুরী'], ['brx-IN', 'बोड़ो'], ['mai-IN', 'मैथिली'], ['doi-IN', 'डोगरी']];
 
-function languageName(code: string) { return voiceLanguages.find(([value]) => value === code)?.[1] ?? 'Auto-detect any language'; }
+export function languageName(code: string) { return voiceLanguages.find(([value]) => value === code)?.[1] ?? 'Auto-detect any language'; }
 
-function LanguageModal({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
+export function LanguageModal({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
   const columns = [voiceLanguages.slice(0, 8), voiceLanguages.slice(8, 16), voiceLanguages.slice(16)];
-  return <div className="language-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return createPortal(<div className="language-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="language-modal" role="dialog" aria-modal="true" aria-labelledby="language-title">
       <header><div><i className="ph ph-globe" /><div><h3 id="language-title">Select language</h3><p>Choose your preferred complaint language</p></div></div><button type="button" className="language-close" onClick={onClose} aria-label="Close language selector"><i className="ph ph-x" /></button></header>
       <div className="language-columns">{columns.map((column, index) => <div className="language-column" key={index}>{column.map(([code, label]) => <button type="button" key={code} className={`language-row ${value === code ? 'selected' : ''}`} onClick={() => onChange(code)}><span>{label}</span>{value === code && <i className="ph ph-check" />}</button>)}</div>)}</div>
     </section>
-  </div>;
+  </div>, document.body);
 }

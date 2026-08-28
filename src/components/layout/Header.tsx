@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { RouteKey } from '../../types';
+import { LanguageModal, languageName } from '../report/ComplaintFlow';
 
 const links: { route: RouteKey; label: string }[] = [
   { route: 'report', label: 'Report' },
@@ -11,7 +12,7 @@ const links: { route: RouteKey; label: string }[] = [
 
 export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (route: RouteKey) => void }) {
   const [open, setOpen] = useState(false);
-  const [lang, setLang] = useState<'en' | 'hi'>('en');
+  const [lang, setLang] = useState('en-IN');
   const [langOpen, setLangOpen] = useState(false);
 
   const go = (r: RouteKey) => {
@@ -57,20 +58,9 @@ export function Header({ route, onNavigate }: { route: RouteKey; onNavigate: (ro
               aria-expanded={langOpen}
               onClick={() => setLangOpen((o) => !o)}
             >
-              {lang === 'en' ? 'English' : 'हिन्दी'} <i className="ph ph-caret-down" aria-hidden="true" />
+              {languageName(lang)} <i className="ph ph-caret-down" aria-hidden="true" />
             </button>
-            {langOpen && (
-              <div className="select-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 160 }}>
-                <button aria-selected={lang === 'en'} onClick={() => { setLang('en'); setLangOpen(false); }}>
-                  <span>English</span>
-                  <i className="ph ph-check" aria-hidden="true" />
-                </button>
-                <button aria-selected={lang === 'hi'} onClick={() => { setLang('hi'); setLangOpen(false); }}>
-                  <span>हिन्दी</span>
-                  <i className="ph ph-check" aria-hidden="true" />
-                </button>
-              </div>
-            )}
+            {langOpen && <LanguageModal value={lang} onChange={(next) => { setLang(next); setLangOpen(false); }} onClose={() => setLangOpen(false)} />}
           </div>
 
           <a className="btn btn-danger btn-sm call-btn" href="tel:1930">

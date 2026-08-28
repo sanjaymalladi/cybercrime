@@ -31,6 +31,18 @@ const homeAlerts = [
 ];
 
 const ROUTES: RouteKey[] = ['home', 'report', 'voice', 'detect', 'track', 'learn', 'awareness', 'resources', 'contact'];
+const PAGE_TITLES: Record<RouteKey, string> = {
+  home: 'Cyber Crime India — Report. Detect. Track.',
+  report: 'Report a Cyber Crime — Cyber Crime India',
+  voice: 'Voice Complaint — Cyber Crime India',
+  detect: 'Check Before You Click — Cyber Crime India',
+  track: 'Track Your Complaint — Cyber Crime India',
+  learn: 'Cyber Safety Learning — Cyber Crime India',
+  awareness: 'Cyber Crime Awareness — Cyber Crime India',
+  resources: 'Cyber Safety Resources — Cyber Crime India',
+  contact: 'Contact Support — Cyber Crime India',
+};
+
 function parseRoute(hash: string): RouteKey {
   const r = hash.replace(/^#/, '');
   // SAFETY: r is guaranteed to be a member of ROUTES by the includes check below.
@@ -181,6 +193,9 @@ export function App() {
     addEventListener('hashchange', onHash);
     return () => removeEventListener('hashchange', onHash);
   }, []);
+  useEffect(() => {
+    document.title = PAGE_TITLES[route];
+  }, [route]);
   const go = (next: RouteKey) => {
     location.hash = next;
   };

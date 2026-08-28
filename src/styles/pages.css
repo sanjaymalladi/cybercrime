@@ -138,8 +138,8 @@
 .voice-language-trigger { width: 100%; display: flex; align-items: center; gap: 10px; padding: 13px 16px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
 .voice-language-trigger i:last-child { margin-left: auto; color: var(--accent); }
 .voice-language-trigger:hover { border-color: var(--accent); }
-.language-modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: rgb(12 18 32 / 68%); }
-.language-modal { width: min(100%, 920px); max-height: min(720px, 90vh); overflow: auto; padding: clamp(22px, 4vw, 38px); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 28%); }
+.language-modal-backdrop { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: auto; padding: 24px; background: rgb(12 18 32 / 68%); }
+.language-modal { width: min(100%, 920px); max-height: calc(100dvh - 48px); overflow: auto; margin: auto; padding: clamp(22px, 4vw, 38px); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 24px 80px rgb(0 0 0 / 28%); }
 .language-modal header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; }
 .language-modal header > div { display: flex; gap: 14px; align-items: flex-start; }
 .language-modal header > div > i { color: var(--accent); font-size: 1.7rem; }
