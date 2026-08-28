@@ -54,13 +54,18 @@ export default async function handler(_req: any, res: any) {
     const cached = cache.get('profiles');
     if (cached && Date.now() - cached.at < TTL) {
       res.setHeader('Content-Type', 'application/json');
-      return res.status(200).json(cached.data);
+      res.statusCode = 200;
+      return res.end(JSON.stringify(cached.data));
     }
     const data = { profiles: await Promise.all(HANDLES.map(getProfile)) };
     cache.set('profiles', { at: Date.now(), data });
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600');
-    return res.status(200).json(data);
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 200;
+    return res.end(JSON.stringify(data));
   } catch (error) {
-    return res.status(502).json({ error: 'Instagram feed unavailable', detail: String(error) });
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 502;
+    return res.end(JSON.stringify({ error: 'Instagram feed unavailable', detail: String(error) }));
   }
 }

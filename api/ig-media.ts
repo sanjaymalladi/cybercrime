@@ -4,7 +4,10 @@ export default async function handler(req: any, res: any) {
   try {
     const raw = Array.isArray(req.query?.u) ? req.query.u[0] : req.query?.u;
     const target = new URL(String(raw || ''));
-    if (!MEDIA_HOST_RE.test(target.hostname)) return res.status(403).end();
+    if (!MEDIA_HOST_RE.test(target.hostname)) {
+      res.statusCode = 403;
+      return res.end();
+    }
 
     const upstream = await fetch(target.toString(), {
       headers: {
@@ -21,6 +24,7 @@ export default async function handler(req: any, res: any) {
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.end(Buffer.from(await upstream.arrayBuffer()));
   } catch {
-    return res.status(400).end();
+    res.statusCode = 400;
+    return res.end();
   }
 }
