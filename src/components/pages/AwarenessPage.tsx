@@ -412,9 +412,14 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
     };
   }, []);
 
-  const profiles = (live ?? igProfiles).map((profile) =>
-    profile.handle.toLowerCase().includes('vigil') ? { ...profile, images: [] } : profile,
-  );
+  const vigilFallback = igProfiles.find((profile) => profile.handle.toLowerCase().includes('vigil'));
+  const profiles = (live ?? igProfiles).map((profile) => {
+    if (!profile.handle.toLowerCase().includes('vigil')) return profile;
+    // Keep the known fallback reels when the live proxy returns only a partial
+    // timeline. The Map prevents duplicate cards when both sources overlap.
+    const reels = new Map((vigilFallback?.reels ?? []).concat(profile.reels).map((reel) => [reel.code, reel]));
+    return { ...profile, images: [], reels: [...reels.values()] };
+  });
   const govList: IgMedia[] = govImages.map((g, i) => ({ code: `gov${i}`, title: g.title, image: govImageUrl(g.file) }));
   const open = (p: { name: string; handle: string }, kind: 'post' | 'reel', list: IgMedia[], idx: number) =>
     setLightbox({ name: p.name, handle: p.handle, kind, list, idx });

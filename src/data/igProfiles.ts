@@ -10,6 +10,9 @@ export const igProfiles: IgProfile[] = [
     // same way as the live feed so a failed proxy cannot create a false Images section.
     images: [],
     reels: [
+      { code: "Dci2JHytcZc", title: "Aalas: 1. Cyber fraud: 0. 🏏 #LazinessSaves streaming now on @jiohotst…" },
+      { code: "DcixhRbNDIa", title: "Who else is from the happiest city in the world here? Where being lazy…" },
+      { code: "DcgQULAqnB5", title: "Hacker ki mehnat waste, mera aalas best. 🥱  #LazinessSaves streaming …" },
       { code: "CmMEDito6in", title: "Options to book a trip online could be plenty or it could be few.  But…" },
       { code: "ChlwznhD6od", title: "Introducing - What The Fraud with Vigil Aunty. A talk show where I cha…" },
       { code: "ChcppbEA9aT", title: "Follow my advice to stay safe from any financial fraud vice!  You can …" },
