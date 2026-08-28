@@ -6,11 +6,9 @@ export const igProfiles: IgProfile[] = [
     name: "Vigil Aunty",
     handle: "@vforvigilaunty",
     avatar: "https://instagram.fhyd14-3.fna.fbcdn.net/v/t51.2885-19/405530428_745467084294367_5900511568794712441_n.jpg?stp=dst-jpg_s150x150_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.fhyd14-3.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2gFS1F7-HzKYKJFGEEpAMIQlgeYMBvA21RWJpzDojpob5HHbIS5Oewn4DzgeLLLRdNRu8k212pSv8O6SWM_PicaX&_nc_ohc=uSEPONvFPhUQ7kNvwFAEdRE&_nc_gid=PUtwsCSFYE9MzhW7ROyKDQ&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AQEFOud_VIjpMJUVP4aqoaPWBIwlQFwXLauwG40tvomFEg&oe=6A961931&_nc_sid=8b3546",
-    images: [
-      { code: "Dci2JHytcZc", title: "Aalas: 1. Cyber fraud: 0. 🏏 #LazinessSaves streaming now on @jiohotst…" },
-      { code: "DcixhRbNDIa", title: "Who else is from the happiest city in the world here? Where being lazy…" },
-      { code: "DcgQULAqnB5", title: "Hacker ki mehnat waste, mera aalas best. 🥱  #LazinessSaves streaming …" },
-    ],
+    // Vigil Aunty's awareness feed is reel-only. Keep the fallback typed the
+    // same way as the live feed so a failed proxy cannot create a false Images section.
+    images: [],
     reels: [
       { code: "CmMEDito6in", title: "Options to book a trip online could be plenty or it could be few.  But…" },
       { code: "ChlwznhD6od", title: "Introducing - What The Fraud with Vigil Aunty. A talk show where I cha…" },

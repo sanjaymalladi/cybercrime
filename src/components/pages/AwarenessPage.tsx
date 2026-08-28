@@ -410,7 +410,9 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
     };
   }, []);
 
-  const profiles = live ?? igProfiles;
+  const profiles = (live ?? igProfiles).map((profile) =>
+    profile.handle.toLowerCase().includes('vigil') ? { ...profile, images: [] } : profile,
+  );
   const govList: IgMedia[] = govImages.map((g, i) => ({ code: `gov${i}`, title: g.title, image: govImageUrl(g.file) }));
   const open = (p: { name: string; handle: string }, kind: 'post' | 'reel', list: IgMedia[], idx: number) =>
     setLightbox({ name: p.name, handle: p.handle, kind, list, idx });
@@ -542,13 +544,13 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
                   <>
                     <h4 className="reel-subhead">Reels</h4>
                     <div className={`reel-feed reel-feed--${desktop ? 'row' : 'col'}`} id={`reelfeed-${i}`}>
-                      {(p.handle.toLowerCase().includes('vigil') ? [...p.reels].reverse().slice(3) : p.reels).map((m, idx) => (
+                      {p.reels.map((m, idx) => (
                         <MediaCard
                           key={m.code}
                           kind="reel"
                           media={m}
                           desktop={desktop}
-                          onOpen={() => open(p, 'reel', p.handle.toLowerCase().includes('vigil') ? [...p.reels].reverse().slice(3) : p.reels, idx)}
+                          onOpen={() => open(p, 'reel', p.reels, idx)}
                           onEnded={desktop ? undefined : () => scrollNext(i, idx)}
                         />
                       ))}
