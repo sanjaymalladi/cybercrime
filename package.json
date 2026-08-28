@@ -2,7 +2,7 @@
   "name": "the-sarkari-web",
   "version": "1.0.0",
   "private": true,
-  "description": "A Reddit-sourced audit of India's government websites.",
+  "description": "Citizen-first cyber crime reporting, detection, tracking, and awareness portal for India.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

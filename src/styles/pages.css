@@ -210,11 +210,11 @@
 .demo-screenshot { width: 100%; display: flex; align-items: center; gap: 12px; margin-top: var(--sp-3); padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink); text-align: left; cursor: pointer; }
 .demo-screenshot:hover { border-color: var(--accent); background: var(--accent-soft); }
 .demo-screenshot img { width: 42px; height: 42px; border-radius: 7px; object-fit: cover; object-position: top; }
+.demo-screenshot-preview { display: block; width: 42px; height: 42px; flex: 0 0 auto; padding: 0; border: 0; border-radius: 7px; background: transparent; cursor: zoom-in; }
+.demo-screenshot-preview:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .demo-screenshot span { display: grid; gap: 1px; flex: 1; }
 .demo-screenshot small { color: var(--muted); }
 .demo-screenshot > i { color: var(--accent); }
-.demo-screenshot img[role="button"] { cursor: zoom-in; }
-.demo-screenshot img[role="button"]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .demo-image-lightbox { position: fixed; inset: 0; z-index: 320; display: grid; place-items: center; padding: 24px; background: rgb(7 14 24 / 82%); backdrop-filter: blur(8px); animation: scam-board-fade .2s ease; }
 .demo-image-dialog { position: relative; width: min(100%, 1120px); max-height: calc(100dvh - 48px); overflow: auto; padding: 22px; border: 1px solid rgb(255 255 255 / 18%); border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 28px 90px rgb(0 0 0 / 32%); animation: scam-board-pop .28s cubic-bezier(.22, 1, .36, 1); }
 .demo-image-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }

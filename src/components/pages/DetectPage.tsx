@@ -140,11 +140,25 @@ function DetectPageWithConvex({ go }: { go: (r: RouteKey) => void }) {
                 reader.readAsDataURL(file);
               }} />
               </label>
-              <button type="button" className="demo-screenshot" onClick={checkDemoScreenshot} disabled={loading}>
-                <img src="/demo-scam-screenshot.png" alt="Preview example suspicious SBI message screenshot. Activate to view full size." onClick={(event) => { event.stopPropagation(); setDemoPreviewOpen(true); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); setDemoPreviewOpen(true); } }} role="button" tabIndex={0} />
+              <div
+                className="demo-screenshot"
+                role="button"
+                tabIndex={loading ? -1 : 0}
+                aria-disabled={loading}
+                onClick={() => { if (!loading) void checkDemoScreenshot(); }}
+                onKeyDown={(event) => {
+                  if (!loading && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    void checkDemoScreenshot();
+                  }
+                }}
+              >
+                <button type="button" className="demo-screenshot-preview" onClick={(event) => { event.stopPropagation(); setDemoPreviewOpen(true); }} aria-label="View demo screenshot full size">
+                  <img src="/demo-scam-screenshot.png" alt="Preview example suspicious SBI message screenshot" />
+                </button>
                 <span><strong>Try the demo screenshot</strong><small>Analyze an example SBI phishing message</small></span>
                 <i className="ph ph-arrow-right" />
-              </button>
+              </div>
 
               <div className="scan-note">
                 <i className="ph ph-lightning" /> Powered by VirusTotal, Google Safe Browsing &amp; a vision-LLM.
