@@ -1,9 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAction } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { PageHeader } from '../ui/PageHeader';
 import { Reveal } from '../ui/Reveal';
 import type { RouteKey } from '../../types';
+
+function DemoScreenshotLightbox({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    const previousOverflow = document.body.style.overflow;
+    document.body.classList.add('lightbox-open');
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.classList.remove('lightbox-open');
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="demo-image-lightbox" role="dialog" aria-modal="true" aria-labelledby="demo-image-title" onClick={onClose}>
+      <div className="demo-image-dialog" onClick={(event) => event.stopPropagation()}>
+        <div className="demo-image-head"><div><span className="eyebrow">Demo screenshot</span><h2 id="demo-image-title">Suspicious SBI message</h2></div><button type="button" className="demo-image-close" onClick={onClose} aria-label="Close image preview"><i className="ph ph-x" /></button></div>
+        <img src="/demo-scam-screenshot.png" alt="Full-size example suspicious SBI message screenshot" />
+      </div>
+    </div>
+  );
+}
 
 function isLikelyUrl(value: string) {
   return /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/[^\s]*)?$/i.test(value.trim());
@@ -40,6 +64,7 @@ function DetectPageWithConvex({ go }: { go: (r: RouteKey) => void }) {
   const [scan, setScan] = useState<{ verdict: string; score: number; risk: string; reasons: string[]; providers: Array<{ name: string; status: string }> } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoPreviewOpen, setDemoPreviewOpen] = useState(false);
   const runScan = useAction(api.detection.scan);
 
   const check = async (input: string, source: 'text' | 'url' | 'image', mimeType?: string) => {
@@ -116,7 +141,7 @@ function DetectPageWithConvex({ go }: { go: (r: RouteKey) => void }) {
               }} />
               </label>
               <button type="button" className="demo-screenshot" onClick={checkDemoScreenshot} disabled={loading}>
-                <img src="/demo-scam-screenshot.png" alt="Example suspicious SBI message screenshot" />
+                <img src="/demo-scam-screenshot.png" alt="Preview example suspicious SBI message screenshot. Activate to view full size." onClick={(event) => { event.stopPropagation(); setDemoPreviewOpen(true); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); setDemoPreviewOpen(true); } }} role="button" tabIndex={0} />
                 <span><strong>Try the demo screenshot</strong><small>Analyze an example SBI phishing message</small></span>
                 <i className="ph ph-arrow-right" />
               </button>
@@ -179,6 +204,7 @@ function DetectPageWithConvex({ go }: { go: (r: RouteKey) => void }) {
           </div>
         </div>
       </section>
+      {demoPreviewOpen && <DemoScreenshotLightbox onClose={() => setDemoPreviewOpen(false)} />}
     </>
   );
 }

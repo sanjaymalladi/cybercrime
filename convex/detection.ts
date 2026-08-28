@@ -34,7 +34,7 @@ function isStringValue(value: ParsedValue | undefined): value is string {
 
 function parseModelResult(content: string) {
   const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-  // SAFETY: OpenRouter is requested to return this exact JSON shape; all values are validated before use.
+  // SAFETY: The model is requested to return this exact JSON shape; all values are validated before use.
   const parsed = JSON.parse(cleaned) as { extractedText?: ParsedValue; verdict?: ParsedValue; score?: ParsedValue; risk?: ParsedValue; reasons?: ParsedValue[] };
   const score = Math.max(0, Math.min(100, Number(parsed.score) || 0));
   const reasons = Array.isArray(parsed.reasons) ? parsed.reasons.filter(isStringValue).slice(0, 8) : [];
@@ -65,7 +65,7 @@ export const scan = action({
   returns: scanResult,
   handler: async (ctx, args) => {
     const apiKey = process.env.SCAMCHECK_API_KEY;
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
     const input = args.source === 'image' && args.mimeType ? `data:${args.mimeType};base64,${args.input}` : args.input;
     const localImageText = args.mimeType === 'image/demo-scam'
       ? 'State Bank of India suspicious activity account suspended within 24 hours verify immediately secure-sbi-login.com'
@@ -76,38 +76,53 @@ export const scan = action({
     const providers: Array<{ name: string; status: 'checked' | 'clear' | 'unavailable' | 'not_configured' | 'submitted' }> = [
       { name: 'Local fallback', status: 'checked' },
       { name: 'ScamCheck', status: apiKey ? 'unavailable' : 'not_configured' },
-      { name: 'OpenRouter OCR', status: openRouterKey ? 'unavailable' : 'not_configured' },
+      { name: 'Gemini OCR', status: geminiKey ? 'unavailable' : 'not_configured' },
       { name: 'VirusTotal', status: args.source === 'url' && process.env.VIRUSTOTAL_API_KEY ? 'unavailable' : 'not_configured' },
       { name: 'Safe Browsing', status: args.source === 'url' && process.env.GOOGLE_SAFE_BROWSING_KEY ? 'unavailable' : 'not_configured' },
     ];
     let resultUrl: string | undefined;
     let extractedText: string | undefined;
 
-    if (openRouterKey && (args.source === 'image' || args.source === 'text')) {
+    if (geminiKey && (args.source === 'image' || args.source === 'text')) {
       try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const prompt = 'You are a cyber-safety analyst. Return only JSON with keys extractedText, verdict, score, risk, reasons. First OCR every visible word, URL, phone number, UPI ID, and sender name from the screenshot; then assess scam risk. score is 0-100, risk is low, medium, or high, and reasons is an array of concise evidence-based strings.';
+        const parts = args.source === 'image'
+          ? [{ text: prompt }, { inlineData: { mimeType: args.mimeType || 'image/png', data: args.input } }]
+          : [{ text: `${prompt}\n\nContent to analyze:\n${args.input}` }];
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(geminiKey)}`, {
           method: 'POST',
           signal: AbortSignal.timeout(30000),
-          headers: { Authorization: `Bearer ${openRouterKey}`, 'Content-Type': 'application/json', 'X-Title': 'Cybercrime India Detector' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'openrouter/free',
-            temperature: 0.1,
-            max_tokens: 700,
-            response_format: { type: 'json_object' },
-            messages: [{ role: 'system', content: 'You are a cyber-safety analyst. Return only valid JSON with keys extractedText, verdict, score, risk, reasons. First OCR every visible word, URL, phone number, UPI ID, and sender name from the screenshot; then assess scam risk. score is 0-100, risk is low, medium, or high, and reasons is an array of concise evidence-based strings.' }, { role: 'user', content: args.source === 'image' ? [{ type: 'text', text: 'OCR and analyze this screenshot for scam indicators.' }, { type: 'image_url', image_url: { url: input } }] : args.input }],
+            contents: [{ role: 'user', parts }],
+            generationConfig: {
+              maxOutputTokens: 700,
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                  extractedText: { type: 'STRING' },
+                  verdict: { type: 'STRING' },
+                  score: { type: 'NUMBER' },
+                  risk: { type: 'STRING', enum: ['low', 'medium', 'high'] },
+                  reasons: { type: 'ARRAY', items: { type: 'STRING' } },
+                },
+                required: ['extractedText', 'verdict', 'score', 'risk', 'reasons'],
+              },
+            },
           }),
         });
-        if (!response.ok) throw new Error(`OpenRouter returned ${response.status}`);
-        // SAFETY: OpenRouter's response contract is checked by the content presence guard below.
-        const body = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-        const content = body.choices?.[0]?.message?.content;
-        if (!content) throw new Error('OpenRouter returned no analysis');
+        if (!response.ok) throw new Error(`Gemini returned ${response.status}`);
+        // SAFETY: Gemini's response contract is checked by the content presence guard below.
+        const body = (await response.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+        const content = body.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('');
+        if (!content) throw new Error('Gemini returned no analysis');
         const modelResult = parseModelResult(content);
         result = { ...result, ...modelResult };
         extractedText = modelResult.extractedText;
         providers[2].status = 'checked';
       } catch {
-        // Keep the local heuristic if the free router is unavailable or returns malformed JSON.
+        // Keep the local heuristic if Gemini is unavailable or returns malformed JSON.
       }
     }
 

@@ -24,7 +24,7 @@ It is designed around a simple principle: help a person take the right next step
 
 - Scan a URL, message, or uploaded screenshot.
 - Local heuristic checks for OTP/PIN requests, urgency, shortened links, KYC/refund/job themes, and similar signals.
-- Optional integrations for OpenRouter vision/OCR, ScamCheck, VirusTotal, and Google Safe Browsing.
+- Optional integrations for Gemini 3.5 Flash-Lite vision/OCR, ScamCheck, VirusTotal, and Google Safe Browsing.
 - Displays a risk score, risk level, provider status, and reasons behind the result.
 - Includes a built-in suspicious SBI message demo.
 
@@ -215,7 +215,7 @@ Optional backend environment variables:
 
 ```bash
 npx convex env set SARVAM_API_KEY your_key
-npx convex env set OPENROUTER_API_KEY your_key
+npx convex env set GEMINI_API_KEY your_key
 npx convex env set SCAMCHECK_API_KEY your_key
 npx convex env set VIRUSTOTAL_API_KEY your_key
 npx convex env set GOOGLE_SAFE_BROWSING_KEY your_key
