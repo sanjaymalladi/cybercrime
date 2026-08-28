@@ -251,7 +251,7 @@ function ReelVideo({ media, onEnded }: { media: IgMedia; onEnded?: () => void })
       ref={ref}
       className="reel-media reel-video"
       src={proxy(media.video)}
-      poster={proxy(media.thumb)}
+      poster={cachedMediaUrl(media.code) ? undefined : proxy(media.thumb)}
       muted
       playsInline
       preload="metadata"
@@ -449,6 +449,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
   const [selectedScam, setSelectedScam] = useState<ScamCase | null>(null);
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     let ok = true;
     fetch('/api/ig')
       .then((r) => r.json())

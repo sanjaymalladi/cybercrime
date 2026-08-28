@@ -10,4 +10,4 @@ const withExtras = (profile: IgProfile): IgProfile => {
   return { ...profile, reels: [...profile.reels, ...extraCyber.map(placeholder).filter((m) => !profile.reels.some((r) => r.code === m.code))], images: [...images, ...extraCyberImages.map(placeholder).filter((m) => !images.some((i) => i.code === m.code))] };
 };
 
-export const cachedIgProfiles = igProfiles.map(withExtras);
+export const cachedIgProfiles = igProfiles.map((profile) => ({ ...withExtras(profile), avatar: '' }));
