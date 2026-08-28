@@ -79,18 +79,72 @@
 .awareness-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--sp-6); align-items: start; }
 .trending { display: grid; gap: var(--sp-3); }
 .trend-item {
-  display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-4); align-items: center;
+  display: grid; grid-template-columns: auto 1fr auto auto; gap: var(--sp-4); align-items: center;
   padding: var(--sp-4) var(--sp-5);
   border: 1px solid var(--line); border-radius: var(--r);
-  background: var(--surface); transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  background: var(--surface); color: inherit; font: inherit; text-align: left; width: 100%;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-.trend-item:hover { border-color: var(--line-strong); }
+.trend-item:disabled { cursor: default; opacity: 1; }
+.trend-item--interactive { cursor: pointer; }
+.trend-item--interactive:hover { border-color: var(--accent); box-shadow: 0 8px 22px rgb(13 55 75 / 8%); }
+.trend-item--interactive:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 3px; }
+.trend-open-icon { color: var(--accent); font-size: 1.1rem; opacity: .7; }
 .trend-rank { font-family: var(--font-display); font-size: 1.5rem; color: var(--muted-2); font-weight: 600; width: 2ch; text-align: center; }
 .trend-body b { display: block; color: var(--ink); font-weight: 600; }
 .trend-body small { color: var(--muted); }
 .trend-meta { text-align: end; }
 .trend-delta { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; color: var(--danger); }
 .trend-delta.down { color: var(--success); }
+
+/* ---------------- Interactive scam learning board ---------------- */
+.scam-board-backdrop {
+  position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px;
+  background: rgb(7 14 24 / 72%); backdrop-filter: blur(8px); animation: scam-board-fade .2s ease;
+}
+.scam-board {
+  width: min(760px, 100%); max-height: calc(100dvh - 40px); overflow: auto; background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--r-lg); box-shadow: 0 28px 90px rgb(0 0 0 / 28%);
+  animation: scam-board-pop .28s cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes scam-board-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scam-board-pop { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.scam-board-head { display: flex; justify-content: space-between; gap: 20px; padding: 28px 32px 22px; border-bottom: 1px solid var(--line); }
+.scam-board-head .eyebrow { color: var(--accent); }
+.scam-board-head h2 { margin: 9px 0 4px; font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); }
+.scam-board-head p { margin: 0; color: var(--muted); }
+.scam-board-close { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 1.15rem; cursor: pointer; flex: 0 0 auto; }
+.scam-board-close:hover { background: var(--surface-sunken); color: var(--ink); }
+.scam-board-progress { display: flex; align-items: center; justify-content: center; gap: 28px; padding: 20px 32px 4px; }
+.scam-step-dot { position: relative; display: grid; place-items: center; width: 36px; height: 36px; border: 2px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--muted); font: 600 .8rem var(--font-mono); cursor: pointer; }
+.scam-step-dot:not(:last-child)::after { content: ''; position: absolute; left: calc(100% + 2px); width: 27px; height: 2px; background: var(--line-strong); }
+.scam-step-dot.is-done { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.scam-step-dot.is-active { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: 0 0 0 4px var(--accent-soft); }
+.scam-board-content { display: grid; grid-template-columns: .9fr 1.1fr; gap: 38px; align-items: center; padding: 30px 48px 36px; animation: scam-content-in .25s ease; }
+@keyframes scam-content-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+.scam-board-visual { display: grid; place-items: center; min-height: 260px; border-radius: var(--r); background: linear-gradient(145deg, var(--accent-soft), var(--surface-sunken)); }
+.upi-phone { width: 190px; min-height: 264px; padding: 14px 13px; border: 5px solid var(--navy); border-radius: 24px; background: #f9fbfc; color: var(--navy); box-shadow: 0 12px 24px rgb(13 30 47 / 18%); transform: rotate(-3deg); }
+.upi-phone-top { display: flex; justify-content: space-between; font: 600 .55rem var(--font-mono); opacity: .65; }
+.upi-brand { display: flex; align-items: center; gap: 6px; justify-content: center; margin: 20px 0 18px; font-size: .9rem; }
+.upi-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: #1274e8; color: #fff; font-weight: 800; }
+.upi-request { padding: 14px 11px; border: 1px solid #d7e2ea; border-radius: 12px; background: #fff; text-align: center; transition: border-color .2s, background .2s; }
+.upi-request.is-danger { border-color: #e8a29b; background: #fff5f3; }
+.upi-request-icon { display: grid; place-items: center; width: 32px; height: 32px; margin: 0 auto 7px; border-radius: 50%; background: #eaf3ff; color: #1274e8; font-size: 1rem; }
+.upi-request.is-danger .upi-request-icon { background: #ffe1dd; color: #ba3c31; }
+.upi-request small { display: block; color: #637282; font-size: .56rem; }
+.upi-request strong { display: block; margin-top: 4px; font-size: .72rem; }
+.upi-amount { display: block; margin-top: 11px; color: #ba3c31; font: 700 .85rem var(--font-mono); }
+.upi-pin-line { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 18px; color: #637282; font-size: .52rem; }
+.scam-board-kicker { color: var(--accent); font: 600 .78rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.scam-board-kicker span { color: var(--muted-2); }
+.scam-board-copy h3 { margin: 10px 0 12px; font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.15rem); line-height: 1.08; }
+.scam-board-copy > p { max-width: 42ch; margin: 0; color: var(--muted); line-height: 1.65; }
+.scam-board-tip { display: flex; gap: 10px; align-items: flex-start; margin-top: 20px; padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--accent-soft); color: var(--ink); font-size: .84rem; line-height: 1.45; }
+.scam-board-tip i { margin-top: 2px; color: var(--accent); }
+.scam-board-tip b { display: block; font-size: .7rem; font-family: var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.scam-board-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 32px 24px; border-top: 1px solid var(--line); }
+.scam-board-foot button:disabled { opacity: .42; cursor: not-allowed; }
+.scam-board-hint { color: var(--muted-2); font: .68rem var(--font-mono); }
 .reels { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-4); }
 .reel-card { position: relative; border-radius: var(--r); overflow: hidden; border: 1px solid var(--line); aspect-ratio: 9/13; background: var(--navy); color: #fff; display: flex; flex-direction: column; justify-content: flex-end; }
 .reel-card .thumb { position: absolute; inset: 0; background: linear-gradient(160deg, var(--navy-2), #0d1626); }
@@ -369,4 +423,21 @@
   .reel-feed--row .reel-card-embed { width: 240px; }
   .ig-lightbox__dialog { width: 100%; }
   .gov-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+  .trend-item { grid-template-columns: auto 1fr auto; gap: var(--sp-3); padding: 14px; }
+  .trend-open-icon { grid-column: 3; grid-row: 1; }
+  .trend-meta { grid-column: 3; grid-row: 2; }
+  .scam-board-backdrop { padding: 10px; }
+  .scam-board-head { padding: 22px 20px 18px; }
+  .scam-board-progress { padding-inline: 20px; }
+  .scam-board-progress { gap: 12px; }
+  .scam-step-dot:not(:last-child)::after { width: 10px; }
+  .scam-board-content { grid-template-columns: 1fr; gap: 24px; padding: 22px 20px 26px; }
+  .scam-board-visual { min-height: 220px; }
+  .upi-phone { transform: rotate(-2deg) scale(.88); margin: -14px 0; }
+  .scam-board-foot { flex-wrap: wrap; padding: 16px 20px 20px; }
+  .scam-board-hint { order: 3; flex: 1 0 100%; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scam-board-backdrop, .scam-board, .scam-board-content { animation: none; }
 }

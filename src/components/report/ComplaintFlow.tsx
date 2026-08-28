@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Select } from '../ui/Select';
 import { DatePicker } from '../ui/DatePicker';
-import { useAction } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
 type Step = { title: string; caption: string };
@@ -49,19 +49,38 @@ const empty: FormState = {
   consent: false,
 };
 
-export function ComplaintFlow() {
+type SubmitComplaint = (form: FormState) => Promise<string>;
+
+function ComplaintFlowForm({ onSubmit }: { onSubmit?: SubmitComplaint }) {
   const [mode, setMode] = useState<'text' | 'voice'>('text');
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState<FormState>(empty);
   const [files, setFiles] = useState<string[]>([]);
+  const [submittedReference, setSubmittedReference] = useState('CCIN/2026/004281');
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const update = (key: keyof FormState, value: string | boolean) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  const submit = async () => {
+    setSubmitError('');
+    setSubmitting(true);
+    try {
+      const reference = onSubmit ? await onSubmit(form) : 'CCIN/2026/004281';
+      setSubmittedReference(reference);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'We could not submit your complaint. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const next = (e: FormEvent) => {
     e.preventDefault();
     if (step < steps.length - 1) setStep((s) => s + 1);
-    else setSubmitted(true);
+    else void submit();
   };
   const back = () => setStep((s) => Math.max(0, s - 1));
 
@@ -88,12 +107,12 @@ export function ComplaintFlow() {
                 maxWidth: 360,
               }}
             >
-              CCIN/2026/004281
+            {submittedReference}
             </div>
             <div className="cluster" style={{ justifyContent: 'center' }}>
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => navigator.clipboard?.writeText('CCIN/2026/004281')}
+                onClick={() => navigator.clipboard?.writeText(submittedReference)}
               >
                 <i className="ph ph-copy" /> Copy reference
               </button>
@@ -128,9 +147,9 @@ export function ComplaintFlow() {
 
           {mode === 'voice' ? (
             import.meta.env.VITE_CONVEX_URL ? (
-              <VoicePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
+                  <VoicePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => void submit()} />
             ) : (
-              <VoiceUnavailablePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => setSubmitted(true)} />
+              <VoiceUnavailablePane value={form.description} onChange={(value) => update('description', value)} onSubmit={() => void submit()} />
             )
           ) : (
             <form className="card card-pad" style={{ marginTop: 'var(--sp-5)' }} onSubmit={next}>
@@ -237,19 +256,29 @@ export function ComplaintFlow() {
                 <button type="button" className="btn btn-ghost btn-sm" onClick={back} disabled={step === 0}>
                   <i className="ph ph-arrow-left" /> Back
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {step === steps.length - 1 ? 'Submit complaint' : 'Save & continue'}
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Submitting…' : step === steps.length - 1 ? 'Submit complaint' : 'Save & continue'}
                   <span className="btn-ico">
                     <i className="ph ph-arrow-right" />
                   </span>
                 </button>
               </div>
+              {submitError && <p className="error-text" role="alert" style={{ marginTop: 'var(--sp-3)' }}>{submitError}</p>}
             </form>
           )}
         </div>
       </section>
     </>
   );
+}
+
+function ConnectedComplaintFlow() {
+  const submitComplaint = useMutation(api.mutations.submitComplaint);
+  return <ComplaintFlowForm onSubmit={(form) => submitComplaint({ category: form.category || 'General cyber crime', summary: form.description.trim().slice(0, 1000) })} />;
+}
+
+export function ComplaintFlow() {
+  return import.meta.env.VITE_CONVEX_URL ? <ConnectedComplaintFlow /> : <ComplaintFlowForm />;
 }
 
 function VoiceUnavailablePane({ value, onChange, onSubmit }: { value: string; onChange: (value: string) => void; onSubmit: () => void }) {

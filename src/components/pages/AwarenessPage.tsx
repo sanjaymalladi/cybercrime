@@ -13,6 +13,156 @@ const trending = [
   { rank: 5, tag: 'OTP', title: '“RBI refund” OTP harvesting calls', time: '1d ago', delta: '+9%', dir: 'up' },
 ];
 
+type ScamStep = { label: string; title: string; text: string; icon: string };
+type ScamCase = { title: string; subtitle: string; brand: string; amount: string; steps: ScamStep[] };
+
+const scamCases: Record<number, ScamCase> = {
+  1: {
+    title: 'Fake UPI Collect request', subtitle: 'Follow the trail. The red flag is easy to miss.', brand: 'UPI', amount: '₹2,499', steps: [
+  {
+    label: 'The bait',
+    title: 'A payment “failed” message arrives',
+    text: 'The scammer says your payment failed and promises a refund. They may call pretending to be support or a seller.',
+    icon: 'ph-chat-circle-dots',
+  },
+  {
+    label: 'The request',
+    title: 'A UPI Collect request appears',
+    text: 'Instead of receiving money, you get a request to pay. It can be dressed up as a refund, reversal, or verification.',
+    icon: 'ph-bell-ringing',
+  },
+  {
+    label: 'The trick',
+    title: '“Approve” actually means “pay”',
+    text: 'A UPI Collect request takes money from your account when you approve it. You never need to approve a request to receive a refund.',
+    icon: 'ph-warning-octagon',
+  },
+  {
+    label: 'The pressure',
+    title: 'Urgency keeps you from checking',
+    text: 'They may say the request expires soon or ask for your UPI PIN. Pause. No genuine support agent needs your PIN or OTP.',
+    icon: 'ph-timer',
+  },
+  {
+    label: 'Your move',
+    title: 'Decline, block, and report',
+    text: 'Decline the request. Do not share your PIN or OTP. Block the number and report financial fraud immediately on 1930.',
+    icon: 'ph-shield-check',
+  },
+  ] },
+  2: {
+    title: 'KYC expiry link scam', subtitle: 'A fake deadline is designed to make you tap first.', brand: 'KYC', amount: 'VERIFY', steps: [
+      { label: 'The bait', title: 'An urgent KYC SMS arrives', text: 'The message says your account or SIM will be blocked unless you update KYC immediately.', icon: 'ph-chat-circle-dots' },
+      { label: 'The link', title: 'The link leads to a fake page', text: 'The website copies a bank or wallet brand, but the address is unfamiliar or slightly misspelled.', icon: 'ph-link' },
+      { label: 'The ask', title: 'It asks for private details', text: 'The page asks for your login, card number, OTP, or other information that a genuine KYC notice will not collect this way.', icon: 'ph-identification-card' },
+      { label: 'The pressure', title: 'The countdown is the trick', text: 'Do not let a threat of immediate suspension rush you. Close the page and verify through your bank’s official app or website.', icon: 'ph-timer' },
+      { label: 'Your move', title: 'Delete, block, and report', text: 'Do not open the link or share details. Report the SMS as spam and notify your bank using its official number.', icon: 'ph-shield-check' },
+    ],
+  },
+  3: {
+    title: 'Telegram task-job scam', subtitle: 'Easy money becomes a demand for your money.', brand: 'JOB', amount: '₹5,000', steps: [
+      { label: 'The offer', title: 'A stranger promises easy work', text: 'A message offers quick earnings for liking videos, rating products, or completing simple tasks.', icon: 'ph-briefcase' },
+      { label: 'The hook', title: 'Small rewards build trust', text: 'The group may pay a tiny amount first and show screenshots of other “workers” earning money.', icon: 'ph-coins' },
+      { label: 'The fee', title: 'You must pay to unlock more', text: 'The scam changes when you are asked for a deposit, recharge, membership fee, or tax before withdrawing your earnings.', icon: 'ph-warning-octagon' },
+      { label: 'The trap', title: 'More fees keep the cycle going', text: 'A fake support agent promises the next payment will release your balance, but every payment creates another excuse.', icon: 'ph-arrow-u-up-left' },
+      { label: 'Your move', title: 'Stop paying and preserve evidence', text: 'Leave the group, block the accounts, save chats and payment receipts, then report the fraud. Never pay to get paid.', icon: 'ph-shield-check' },
+    ],
+  },
+  4: {
+    title: 'Fake bank helpline scam', subtitle: 'A convincing voice can still be the wrong number.', brand: 'BANK', amount: 'CALL', steps: [
+      { label: 'The contact', title: 'A “bank helpline” calls back', text: 'The caller claims to be from SBI, HDFC, or another bank after you search for help online or post a complaint.', icon: 'ph-phone-call' },
+      { label: 'The setup', title: 'They sound like real support', text: 'A professional tone, a fake ticket number, and details from your public profile are used to build confidence.', icon: 'ph-identification-card' },
+      { label: 'The access', title: 'They ask you to install an app', text: 'Remote-access apps can let a stranger see your screen or control your device. Never install one at a caller’s request.', icon: 'ph-download-simple' },
+      { label: 'The ask', title: 'They request OTP or PIN', text: 'A real bank employee will never ask for your OTP, UPI PIN, password, or full card details over a call.', icon: 'ph-key' },
+      { label: 'Your move', title: 'Hang up and call back safely', text: 'End the call and use the number on your bank card or official website. If money moved, call 1930 immediately.', icon: 'ph-shield-check' },
+    ],
+  },
+  5: {
+    title: 'Fake RBI refund call', subtitle: 'A refund promise is used to harvest one-time passwords.', brand: 'RBI', amount: 'OTP', steps: [
+      { label: 'The promise', title: 'A caller offers an RBI refund', text: 'The caller says a refund, subsidy, or unclaimed amount is waiting for you and needs “verification”.', icon: 'ph-phone-call' },
+      { label: 'The setup', title: 'They send a payment link', text: 'You may receive a link or a small test transaction designed to make the story feel official.', icon: 'ph-link' },
+      { label: 'The OTP', title: 'An OTP arrives on your phone', text: 'The OTP is for a transaction started by the scammer. It is not a code for receiving money.', icon: 'ph-key' },
+      { label: 'The harvest', title: 'They ask you to read it aloud', text: 'Sharing the code can approve a payment or give access to your account. No legitimate refund process needs your OTP.', icon: 'ph-warning-octagon' },
+      { label: 'Your move', title: 'Refuse, hang up, and report', text: 'Do not share the OTP. Contact your bank through its official channel and call 1930 quickly if you lose money.', icon: 'ph-shield-check' },
+    ],
+  },
+};
+
+function ScamLearningBoard({ scamCase, onClose }: { scamCase: ScamCase; onClose: () => void }) {
+  const [step, setStep] = useState(0);
+  const current = scamCase.steps[step];
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key === 'ArrowRight') setStep((value) => Math.min(value + 1, scamCase.steps.length - 1));
+      if (event.key === 'ArrowLeft') setStep((value) => Math.max(value - 1, 0));
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose, scamCase.steps.length]);
+
+  return (
+    <div className="scam-board-backdrop" role="dialog" aria-modal="true" aria-labelledby="scam-board-title" onClick={onClose}>
+      <div className="scam-board" onClick={(event) => event.stopPropagation()}>
+        <header className="scam-board-head">
+          <div>
+            <span className="eyebrow"><i className="ph ph-graduation-cap" /> Scam breakdown</span>
+            <h2 id="scam-board-title">{scamCase.title}</h2>
+            <p>{scamCase.subtitle}</p>
+          </div>
+          <button className="scam-board-close" type="button" onClick={onClose} aria-label="Close scam breakdown"><i className="ph ph-x" /></button>
+        </header>
+
+        <div className="scam-board-progress" aria-label={`Step ${step + 1} of ${scamCase.steps.length}`}>
+          {scamCase.steps.map((item, index) => (
+            <button key={item.label} type="button" className={`scam-step-dot${index === step ? ' is-active' : ''}${index < step ? ' is-done' : ''}`} onClick={() => setStep(index)} aria-label={`Go to step ${index + 1}: ${item.label}`}>
+              <span>{index + 1}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="scam-board-content" key={step}>
+          <div className="scam-board-visual" aria-hidden="true">
+            <div className="upi-phone">
+              <div className="upi-phone-top"><span>9:41</span><i className="ph ph-wifi-high" /></div>
+              <div className="upi-brand"><span className="upi-mark">{scamCase.brand.slice(0, 1)}</span><b>{scamCase.brand}</b></div>
+              <div className={`upi-request ${step >= 2 ? 'is-danger' : ''}`}>
+                <span className="upi-request-icon"><i className={`ph ${current.icon}`} /></span>
+                <small>{step === 0 ? 'Message' : step === 1 ? 'New request' : step >= 4 ? 'Action needed' : 'Caller says'}</small>
+                <strong>{step === 0 ? 'Payment failed' : step === 1 ? 'Refund request' : step >= 4 ? 'Decline request' : 'Approve to continue'}</strong>
+                <span className="upi-amount">{scamCase.amount}</span>
+              </div>
+              <div className="upi-pin-line"><i className="ph ph-lock-key" /> Your UPI PIN stays private</div>
+            </div>
+          </div>
+          <div className="scam-board-copy">
+            <span className="scam-board-kicker">Step {step + 1} <span>/ {scamCase.steps.length}</span></span>
+            <h3>{current.title}</h3>
+            <p>{current.text}</p>
+            <div className="scam-board-tip"><i className="ph ph-lightbulb" /><span><b>Remember</b> Receiving money never requires your UPI PIN.</span></div>
+          </div>
+        </div>
+
+        <footer className="scam-board-foot">
+          <button type="button" className="btn btn-ghost" onClick={() => setStep((value) => Math.max(value - 1, 0))} disabled={step === 0}><i className="ph ph-arrow-left" /> Back</button>
+          <span className="scam-board-hint">Use ← → to navigate</span>
+          {step === scamCase.steps.length - 1 ? (
+            <button type="button" className="btn btn-primary" onClick={onClose}>Got it <i className="ph ph-check" /></button>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={() => setStep((value) => Math.min(value + 1, scamCase.steps.length - 1))}>Next <i className="ph ph-arrow-right" /></button>
+          )}
+        </footer>
+      </div>
+    </div>
+  );
+}
+
 const profileTones = ['var(--navy-2)', '#0f3b34'];
 const IG_BASE = 'https://www.instagram.com';
 
@@ -55,6 +205,7 @@ function IgEmbed({ kind, code, title }: { kind: 'post' | 'reel'; code: string; t
       loading="lazy"
       referrerPolicy="strict-origin-when-cross-origin"
       sandbox="allow-scripts allow-same-origin"
+      allow="autoplay; encrypted-media; picture-in-picture"
     />
   );
 }
@@ -139,7 +290,7 @@ function IgLightbox({ data, onClose, onNav }: { data: Lightbox; onClose: () => v
         <div className={`ig-lightbox__stage ig-lightbox__stage--${data.kind}${data.meta ? ' ig-lightbox__stage--official' : ''}`}>
           {live ? (
             item.video ? (
-              <video className="reel-media reel-video" src={proxy(item.video)} poster={proxy(item.thumb)} controls autoPlay onEnded={() => onNav(1)} />
+              <video className="reel-media reel-video" src={proxy(item.video)} poster={proxy(item.thumb)} controls autoPlay muted playsInline onEnded={() => onNav(1)} />
             ) : (
               <img className="reel-media reel-img" src={proxy(item.image)} alt={item.title} />
             )
@@ -195,14 +346,14 @@ function MediaCard({
       : <img className="reel-media reel-img" src={proxy(media.image)} alt={media.title} loading="lazy" />
     : <IgEmbed kind={kind} code={media.code} title={media.title} />;
 
-  const clickable = kind === 'post' || desktop;
+  const clickable = true;
 
   return (
     <figure className={`reel-card-embed reel-card-embed--${kind}`}>
       {clickable ? (
         <button type="button" className={`reel-frame reel-frame--${kind}`} onClick={onOpen} aria-label={`Open ${media.title}`}>
           {inner}
-          {desktop && live && kind === 'reel' && (
+          {live && kind === 'reel' && (
             <span className="reel-play">
               <i className="ph ph-play" />
             </span>
@@ -242,6 +393,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
   const desktop = useIsDesktop();
   const [live, setLive] = useState<LiveProfile[] | null>(null);
   const [lightbox, setLightbox] = useState<Lightbox | null>(null);
+  const [selectedScam, setSelectedScam] = useState<ScamCase | null>(null);
 
   useEffect(() => {
     let ok = true;
@@ -292,7 +444,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
               </span>
               <div className="trending">
                 {trending.map((t) => (
-                  <div key={t.rank} className="trend-item">
+                  <button type="button" key={t.rank} className="trend-item trend-item--interactive" onClick={() => setSelectedScam(scamCases[t.rank])} aria-label={`Learn how ${t.title} works`}>
                     <span className="trend-rank">{t.rank}</span>
                     <div className="trend-body">
                       <b>{t.title}</b>
@@ -305,7 +457,8 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
                       <br />
                       <small className="muted">{t.time}</small>
                     </div>
-                  </div>
+                    <i className="ph ph-arrow-up-right trend-open-icon" aria-hidden="true" />
+                  </button>
                 ))}
               </div>
             </Reveal>
@@ -431,6 +584,7 @@ export function AwarenessPage({ go }: { go: (r: RouteKey) => void }) {
       </section>
 
       {lightbox && <IgLightbox data={lightbox} onClose={() => setLightbox(null)} onNav={nav} />}
+      {selectedScam && <ScamLearningBoard scamCase={selectedScam} onClose={() => setSelectedScam(null)} />}
     </>
   );
 }
